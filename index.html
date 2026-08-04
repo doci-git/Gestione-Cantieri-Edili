@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Cantieri Edili</title>
+    <style>
+        :root {
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --surface-alt: #f8fafc;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --accent-light: #fef3c7;
+            --accent-subtle: #fffbeb;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --slate: #1e293b;
+            --slate-light: #334155;
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.06);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* ─── Header ─────────────────────── */
+        .app-header {
+            background: var(--slate);
+            color: #fff;
+            padding: 0 16px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            user-select: none;
+        }
+        .app-header .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .app-header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+        .app-header .header-spacer {
+            flex: 1;
+        }
+        .btn-header {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-header:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .btn-header:active {
+            transform: scale(0.96);
+        }
+        .btn-back {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            padding: 6px 8px;
+            border-radius: 50%;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* ─── Main Container ─────────────── */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        @media (min-width: 768px) {
+            .main-container {
+                padding: 24px 20px 60px;
+            }
+        }
+
+        /* ─── Dashboard ──────────────────── */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 500px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 768px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 12px;
+            }
+        }
+        .stat-mini-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px 12px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .stat-mini-card .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--slate);
+            font-family: var(--font-mono);
+        }
+        .stat-mini-card .stat-value.positive {
+            color: var(--success);
+        }
+        .stat-mini-card .stat-value.negative {
+            color: var(--danger);
+        }
+        .stat-mini-card .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .section-title-row h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--slate);
+        }
+        .search-input {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 280px;
+            transition: var(--transition);
+            background: var(--surface);
+            font-family: var(--font);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .sites-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 600px) {
+            .sites-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+        }
+        @media (min-width: 900px) {
+            .sites-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+
+        .site-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 18px 16px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .site-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
+        }
+        .site-card:active {
+            transform: scale(0.98);
+        }
+        .site-card .card-status {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .status-preventivo {
+            background: var(--info-light);
+            color: #1d4ed8;
+        }
+        .status-in-corso {
+            background: var(--warning-light);
+            color: #b45309;
+        }
+        .status-terminato {
+            background: var(--success-light);
+            color: #065f46;
+        }
+        .site-card .card-client {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .site-card .card-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+            padding-right: 80px;
+        }
+        .site-card .card-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 0.78rem;
+        }
+        .site-card .card-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px dotted var(--border-light);
+        }
+        .site-card .card-metric span:first-child {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-weight: 600;
+        }
+        .site-card .card-metric span:last-child {
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+        .card-profit-positive {
+            color: var(--success);
+        }
+        .card-profit-negative {
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-xl);
+            z-index: 90;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .fab:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 24px 48px rgba(245, 158, 11, 0.35);
+        }
+        .fab:active {
+            transform: scale(0.9);
+        }
+        @media (min-width: 768px) {
+            .fab {
+                bottom: 28px;
+                right: 28px;
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+        }
+
+        /* ─── Site Detail ────────────────── */
+        .detail-summary-bar {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 14px 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x proximity;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 64px;
+            z-index: 50;
+            flex-wrap: nowrap;
+        }
+        @media (min-width: 768px) {
+            .detail-summary-bar {
+                flex-wrap: wrap;
+                justify-content: space-around;
+                gap: 8px;
+                overflow-x: visible;
+                padding: 16px 10px;
+            }
+        }
+        .detail-summary-item {
+            flex: 0 0 auto;
+            min-width: 90px;
+            text-align: center;
+            padding: 8px 10px;
+            scroll-snap-align: start;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+        @media (min-width: 768px) {
+            .detail-summary-item {
+                min-width: 100px;
+                flex: 1 1 auto;
+            }
+        }
+        .detail-summary-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+            color: var(--slate);
+        }
+        .detail-summary-value.green {
+            color: var(--success);
+        }
+        .detail-summary-value.red {
+            color: var(--danger);
+        }
+        .detail-summary-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .detail-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .detail-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .detail-section-header h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--slate);
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .icon-quote {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .icon-expense {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .icon-labor {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .icon-extra {
+            background: #fce7f3;
+            color: #be185d;
+        }
+        .icon-collection {
+            background: #d1fae5;
+            color: #059669;
+        }
+        .icon-doc {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+        .icon-reminder {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.78rem;
+            transition: var(--transition);
+            font-family: var(--font);
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-sm:active {
+            transform: scale(0.94);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-accent:hover {
+            background: var(--accent-hover);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent);
+            background: var(--accent-subtle);
+        }
+        .btn-danger-sm {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+        .btn-danger-sm:hover {
+            background: var(--danger-light);
+        }
+
+        .item-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .item-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--surface-alt);
+            border-radius: var(--radius-sm);
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+        .item-list li:hover {
+            border-color: var(--border);
+        }
+        .item-info {
+            flex: 1;
+            min-width: 120px;
+        }
+        .item-info .item-desc {
+            font-weight: 600;
+            color: var(--text);
+        }
+        .item-info .item-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .item-amount {
+            font-weight: 700;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .item-amount.expense {
+            color: var(--danger);
+        }
+        .item-amount.income {
+            color: var(--success);
+        }
+
+        .reminder-done {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .reminder-check {
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .doc-type-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            background: var(--info-light);
+            color: #1d4ed8;
+            white-space: nowrap;
+        }
+
+        /* ─── Modal ──────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        @media (min-width: 600px) {
+            .modal-overlay {
+                align-items: center;
+            }
+        }
+        .modal-sheet {
+            background: var(--surface);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            width: 100%;
+            max-width: 520px;
+            max-height: 88vh;
+            max-height: 88dvh;
+            overflow-y: auto;
+            padding: 20px 16px 24px;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        @media (min-width: 600px) {
+            .modal-sheet {
+                border-radius: var(--radius-xl);
+                margin: 20px;
+                max-height: 85vh;
+                max-height: 85dvh;
+            }
+        }
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+        @media (min-width: 600px) {
+            .modal-handle {
+                display: none;
+            }
+        }
+        .modal-sheet h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: var(--font);
+            transition: var(--transition);
+            background: var(--surface-alt);
+            color: var(--text);
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+            background: #fff;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn-full {
+            width: 100%;
+            padding: 13px;
+            border-radius: 24px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            font-family: var(--font);
+            letter-spacing: 0.01em;
+            margin-top: 8px;
+        }
+        .btn-full:active {
+            transform: scale(0.97);
+        }
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-save:hover {
+            background: var(--accent-hover);
+        }
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border);
+            margin-top: 4px;
+        }
+        .btn-cancel:hover {
+            background: var(--surface-alt);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ─── Toast ──────────────────────── */
+        .toast-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--slate);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.35s ease, toastOut 0.35s ease 2.2s forwards;
+            pointer-events: auto;
+            max-width: 320px;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+        }
+
+        /* ─── Scrollbar ─────────────────── */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ─── Utility ───────────────────── */
+        .hidden {
+            display: none !important;
+        }
+        .text-mono {
+            font-family: var(--font-mono);
+        }
+        @media (max-width: 380px) {
+            .site-card .card-metrics {
+                font-size: 0.7rem;
+            }
+            .detail-summary-item {
+                min-width: 70px;
+                padding: 6px;
+            }
+            .detail-summary-value {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <header class="app-header" id="appHeader">
+        <div class="logo-icon">🏗️</div>
+        <h1 id="headerTitle">Cantieri</h1>
+        <span class="header-spacer"></span>
+        <button class="btn-back hidden" id="btnBack" title="Torna alla lista">←</button>
+        <button class="btn-header hidden" id="btnEditSite" title="Modifica cantiere">✏️ Modifica</button>
+        <button class="btn-header hidden" id="btnDeleteSite" title="Elimina cantiere">🗑️</button>
+    </header>
+
+    <!-- ═══════════════ MAIN ═══════════════ -->
+    <div class="main-container" id="mainContainer">
+        <!-- Dashboard View -->
+        <div id="dashboardView">
+            <div class="dashboard-stats" id="dashboardStats"></div>
+            <div class="section-title-row">
+                <h2>📋 Tutti i cantieri</h2>
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 Cerca cantiere o cliente...">
+            </div>
+            <div class="sites-grid" id="sitesGrid"></div>
+            <div class="empty-state hidden" id="emptyState">
+                <div class="empty-icon">🏗️</div>
+                <p><strong>Nessun cantiere presente</strong></p>
+                <p style="color:var(--text-muted)">Tocca il pulsante + per crearne uno</p>
+            </div>
+        </div>
+
+        <!-- Site Detail View -->
+        <div id="detailView" class="hidden">
+            <div class="detail-summary-bar" id="detailSummaryBar"></div>
+            <div id="detailSections"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ FAB ═══════════════ -->
+    <button class="fab" id="fabAdd" title="Nuovo cantiere">+</button>
+
+    <!-- ═══════════════ MODAL ═══════════════ -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal-sheet" id="modalSheet">
+            <div class="modal-handle"></div>
+            <h3 id="modalTitle">Modale</h3>
+            <div id="modalBody"></div>
+            <button class="btn-full btn-save" id="modalSave">Salva</button>
+            <button class="btn-full btn-cancel" id="modalCancel">Annulla</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ TOAST ═══════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function() {
+            // ─────────────────────────────────────
+            // STATE & PERSISTENCE
+            // ─────────────────────────────────────
+            const STORAGE_KEY = 'gestione_cantieri_data';
+            let sites = [];
+            let currentSiteId = null;
+            let currentView = 'dashboard'; // 'dashboard' | 'detail'
+            let modalCallback = null; // function(formData) => void
+
+            function loadData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        sites = JSON.parse(raw);
+                        // Ensure all sites have proper structure
+                        sites.forEach(s => {
+                            s.expenses = s.expenses || [];
+                            s.labor = s.labor || [];
+                            s.extraWork = s.extraWork || [];
+                            s.collections = s.collections || [];
+                            s.documents = s.documents || [];
+                            s.reminders = s.reminders || [];
+                            s.quoteNotes = s.quoteNotes || '';
+                            s.status = s.status || 'Preventivo';
+                        });
+                    }
+                } catch (e) {
+                    console.error('Errore caricamento dati:', e);
+                    sites = [];
+                }
+                if (sites.length === 0) {
+                    seedDemoData();
+                }
+            }
+
+            function saveData() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                } catch (e) {
+                    showToast('⚠️ Spazio di archiviazione esaurito');
+                }
+            }
+
+            function seedDemoData() {
+                const now = new Date();
+                const fmt = d => d.toISOString().split('T')[0];
+                const daysAgo = n => fmt(new Date(now - n * 86400000));
+
+                sites = [{
+                    id: generateId(),
+                    name: 'Cantiere Rossi',
+                    client: 'Mario Rossi',
+                    quoteAmount: 5000,
+                    quoteNotes: 'Preventivo per rifacimento bagno e piastrellatura.',
+                    status: 'In corso',
+                    expenses: [
+                        { id: generateId(), date: daysAgo(8), description: 'Piastrelle 60x60', amount: 820 },
+                        { id: generateId(), date: daysAgo(5), description: 'Malta e collante', amount: 145 },
+                        { id: generateId(), date: daysAgo(2), description: 'Siliconi e fughe', amount: 68 },
+                    ],
+                    labor: [
+                        { id: generateId(), description: 'Posatore (3 giorni)', hours: 24, amount: 960 },
+                    ],
+                    extraWork: [
+                        { id: generateId(), description: 'Riparazione tubo imprevisto', amount: 350 },
+                    ],
+                    collections: [
+                        { id: generateId(), date: daysAgo(15), amount: 2000, method: 'Bonifico' },
+                        { id: generateId(), date: daysAgo(3), amount: 1500, method: 'Assegno' },
+                    ],
+                    documents: [
+                        { id: generateId(), name: 'Preventivo firmato',
+                            type: 'Preventivo', date: daysAgo(20), url: '' },
+                        { id: generateId(), name: 'Fattura acconto 1',
+                            type: 'Fattura', date: daysAgo(15), url: '' },
+                    ],
+                    reminders: [
+                        { id: generateId(), text: 'Ordinare piastrelle mancanti', date: daysAgo(1),
+                            done: true },
+                        { id: generateId(), text: 'Consegnare fattura saldo', date: daysAgo(-7),
+                        done: false },
+                    ],
+                }, {
+                    id: generateId(),
+                    name: 'Ristrutturazione Villa Bianchi',
+                    client: 'Famiglia Bianchi',
+                    quoteAmount: 25000,
+                    quoteNotes: 'Ristrutturazione completa piano terra: cucina, soggiorno, bagno.',
+                    status: 'In corso',
+                    expenses: [
+                        { id: generateId(), date: daysAgo(12), description: 'Materiali edili vari',
+                            amount: 4200 },
+                        { id: generateId(), date: daysAgo(6), description: 'Serramenti finestre',
+                            amount: 3800 },
+                    ],
+                    labor: [
+                        { id: generateId(), description: 'Squadra muratori (2 settimane)', hours: 160,
+                            amount: 6400 },
+                    ],
+                    extraWork: [],
+                    collections: [
+                        { id: generateId(), date: daysAgo(20), amount: 10000, method: 'Bonifico' },
+                    ],
+                    documents: [
+                        { id: generateId(), name: 'Contratto', type: 'Contratto', date: daysAgo(25),
+                            url: '' },
+                    ],
+                    reminders: [
+                        { id: generateId(), text: 'Sopralluogo ingegnere', date: daysAgo(-3),
+                        done: false },
+                    ],
+                }, {
+                    id: generateId(),
+                    name: 'Manutenzione Condominio Verdi',
+                    client: 'Condominio Verdi',
+                    quoteAmount: 8500,
+                    quoteNotes: 'Manutenzione facciata e grondaie.',
+                    status: 'Terminato',
+                    expenses: [
+                        { id: generateId(), date: daysAgo(40), description: 'Ponteggi (noleggio)',
+                            amount: 1800 },
+                        { id: generateId(), date: daysAgo(35), description: 'Vernice e materiali',
+                            amount: 950 },
+                    ],
+                    labor: [
+                        { id: generateId(), description: 'Squadra (5 giorni)', hours: 80, amount: 3200 },
+                    ],
+                    extraWork: [],
+                    collections: [
+                        { id: generateId(), date: daysAgo(45), amount: 4000, method: 'Bonifico' },
+                        { id: generateId(), date: daysAgo(10), amount: 4500, method: 'Bonifico' },
+                    ],
+                    documents: [
+                        { id: generateId(), name: 'Fattura finale', type: 'Fattura', date: daysAgo(10),
+                            url: '' },
+                    ],
+                    reminders: [],
+                }, ];
+                saveData();
+            }
+
+            function generateId() {
+                return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+            }
+
+            // ─────────────────────────────────────
+            // CALCULATIONS
+            // ─────────────────────────────────────
+            function getTotalExpenses(site) {
+                const matExp = (site.expenses || []).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                const labExp = (site.labor || []).reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
+                const extExp = (site.extraWork || []).reduce((sum, ew) => sum + (parseFloat(ew.amount) || 0), 0);
+                return matExp + labExp + extExp;
+            }
+
+            function getTotalCollections(site) {
+                return (site.collections || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+            }
+
+            function getProfit(site) {
+                return getTotalCollections(site) - getTotalExpenses(site);
+            }
+
+            function getToCollect(site) {
+                const quote = parseFloat(site.quoteAmount) || 0;
+                const collected = getTotalCollections(site);
+                return Math.max(0, quote - collected);
+            }
+
+            function getGlobalStats() {
+                let totalQuote = 0,
+                    totalExp = 0,
+                    totalColl = 0,
+                    totalProfit = 0;
+                sites.forEach(s => {
+                    totalQuote += parseFloat(s.quoteAmount) || 0;
+                    totalExp += getTotalExpenses(s);
+                    totalColl += getTotalCollections(s);
+                    totalProfit += getProfit(s);
+                });
+                return {
+                    totalQuote,
+                    totalExp,
+                    totalColl,
+                    totalToCollect: Math.max(0, totalQuote - totalColl),
+                    totalProfit,
+                    activeCount: sites.filter(s => s.status === 'In corso').length,
+                };
+            }
+
+            // ─────────────────────────────────────
+            // FORMATTING
+            // ─────────────────────────────────────
+            function fmtEuro(val) {
+                const n = parseFloat(val) || 0;
+                const abs = Math.abs(n);
+                const formatted = abs.toLocaleString('it-IT', { minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 });
+                return n < 0 ? '−€' + formatted : '€' + formatted;
+            }
+
+            function fmtDate(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                return parts[2] + '/' + parts[1] + '/' + parts[0];
+            }
+
+            // ─────────────────────────────────────
+            // DOM REFS
+            // ─────────────────────────────────────
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            const dashboardView = $('#dashboardView');
+            const detailView = $('#detailView');
+            const sitesGrid = $('#sitesGrid');
+            const emptyState = $('#emptyState');
+            const dashboardStats = $('#dashboardStats');
+            const detailSummaryBar = $('#detailSummaryBar');
+            const detailSections = $('#detailSections');
+            const searchInput = $('#searchInput');
+            const fabAdd = $('#fabAdd');
+            const btnBack = $('#btnBack');
+            const btnEditSite = $('#btnEditSite');
+            const btnDeleteSite = $('#btnDeleteSite');
+            const headerTitle = $('#headerTitle');
+            const modalOverlay = $('#modalOverlay');
+            const modalSheet = $('#modalSheet');
+            const modalTitle = $('#modalTitle');
+            const modalBody = $('#modalBody');
+            const modalSave = $('#modalSave');
+            const modalCancel = $('#modalCancel');
+            const toastContainer = $('#toastContainer');
+
+            // ─────────────────────────────────────
+            // TOAST
+            // ─────────────────────────────────────
+            function showToast(msg) {
+                const t = document.createElement('div');
+                t.className = 'toast';
+                t.textContent = msg;
+                toastContainer.appendChild(t);
+                setTimeout(() => t.remove(), 2700);
+            }
+
+            // ─────────────────────────────────────
+            // MODAL SYSTEM
+            // ─────────────────────────────────────
+            function openModal(title, fields, onSubmit) {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = '';
+                fields.forEach(f => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
+                    const label = document.createElement('label');
+                    label.textContent = f.label + (f.required ? ' *' : '');
+                    group.appendChild(label);
+
+                    let input;
+                    if (f.type === 'select') {
+                        input = document.createElement('select');
+                        f.options.forEach(opt => {
+                            const o = document.createElement('option');
+                            o.value = opt;
+                            o.textContent = opt;
+                            if (f.value === opt) o.selected = true;
+                            input.appendChild(o);
+                        });
+                    } else if (f.type === 'textarea') {
+                        input = document.createElement('textarea');
+                        input.value = f.value || '';
+                        input.placeholder = f.placeholder || '';
+                    } else {
+                        input = document.createElement('input');
+                        input.type = f.type || 'text';
+                        input.value = f.value || '';
+                        input.placeholder = f.placeholder || '';
+                        if (f.type === 'number') {
+                            input.step = '0.01';
+                            input.min = f.min !== undefined ? f.min : '0';
+                        }
+                    }
+                    if (f.required) input.required = true;
+                    input.setAttribute('data-field-name', f.name);
+                    group.appendChild(input);
+                    modalBody.appendChild(group);
+                });
+                modalCallback = (formData) => onSubmit(formData);
+                modalOverlay.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                modalOverlay.classList.add('hidden');
+                modalCallback = null;
+            }
+
+            function getModalFormData() {
+                const data = {};
+                const inputs = modalBody.querySelectorAll('input, select, textarea');
+                inputs.forEach(inp => {
+                    const name = inp.getAttribute('data-field-name');
+                    if (name) {
+                        data[name] = inp.type === 'number' ? parseFloat(inp.value) || 0 : inp.value;
+                    }
+                });
+                return data;
+            }
+
+            modalSave.addEventListener('click', () => {
+                if (modalCallback) {
+                    const data = getModalFormData();
+                    // Basic validation
+                    const requiredInputs = modalBody.querySelectorAll('[required]');
+                    let valid = true;
+                    requiredInputs.forEach(inp => {
+                        if (!inp.value || (inp.type === 'number' && parseFloat(inp.value) < 0)) {
+                            inp.style.borderColor = 'var(--danger)';
+                            valid = false;
+                        } else {
+                            inp.style.borderColor = 'var(--border)';
+                        }
+                    });
+                    if (!valid) {
+                        showToast('⚠️ Compila tutti i campi obbligatori');
+                        return;
+                    }
+                    modalCallback(data);
+                    closeModal();
+                }
+            });
+            modalCancel.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) closeModal();
+            });
+
+            // ─────────────────────────────────────
+            // NAVIGATION
+            // ─────────────────────────────────────
+            function showDashboard() {
+                currentView = 'dashboard';
+                currentSiteId = null;
+                dashboardView.classList.remove('hidden');
+                detailView.classList.add('hidden');
+                btnBack.classList.add('hidden');
+                btnEditSite.classList.add('hidden');
+                btnDeleteSite.classList.add('hidden');
+                headerTitle.textContent = 'Cantieri';
+                fabAdd.textContent = '+';
+                fabAdd.style.display = 'flex';
+                renderDashboard();
+            }
+
+            function showSiteDetail(siteId) {
+                currentView = 'detail';
+                currentSiteId = siteId;
+                dashboardView.classList.add('hidden');
+                detailView.classList.remove('hidden');
+                btnBack.classList.remove('hidden');
+                btnEditSite.classList.remove('hidden');
+                btnDeleteSite.classList.remove('hidden');
+                const site = sites.find(s => s.id === siteId);
+                if (site) {
+                    headerTitle.textContent = site.name;
+                }
+                fabAdd.textContent = '＋';
+                fabAdd.style.display = 'flex';
+                renderSiteDetail(siteId);
+            }
+
+            btnBack.addEventListener('click', showDashboard);
+            fabAdd.addEventListener('click', () => {
+                if (currentView === 'dashboard') {
+                    openNewSiteModal();
+                } else if (currentView === 'detail' && currentSiteId) {
+                    openQuickAddMenu();
+                }
+            });
+
+            btnEditSite.addEventListener('click', () => {
+                if (currentSiteId) openEditSiteModal(currentSiteId);
+            });
+            btnDeleteSite.addEventListener('click', () => {
+                if (currentSiteId && confirm('Eliminare definitivamente questo cantiere? Tutti i dati andranno persi.')) {
+                    sites = sites.filter(s => s.id !== currentSiteId);
+                    saveData();
+                    showToast('🗑️ Cantiere eliminato');
+                    showDashboard();
+                }
+            });
+
+            function openQuickAddMenu() {
+                const site = sites.find(s => s.id === currentSiteId);
+                if (!site) return;
+                const options = [
+                    { label: '💶 Spesa materiale', action: () => openExpenseModal(currentSiteId) },
+                    { label: '👷 Manodopera', action: () => openLaborModal(currentSiteId) },
+                    { label: '🔧 Lavoro extra', action: () => openExtraWorkModal(currentSiteId) },
+                    { label: '💰 Incasso', action: () => openCollectionModal(currentSiteId) },
+                    { label: '📄 Documento', action: () => openDocumentModal(currentSiteId) },
+                    { label: '⏰ Promemoria', action: () => openReminderModal(currentSiteId) },
+                ];
+                const fields = [{
+                    name: 'choice',
+                    label: 'Cosa vuoi aggiungere?',
+                    type: 'select',
+                    required: true,
+                    options: options.map(o => o.label),
+                }];
+                openModal('Aggiungi al cantiere', fields, (data) => {
+                    const chosen = options.find(o => o.label === data.choice);
+                    if (chosen) chosen.action();
+                });
+            }
+
+            // ─────────────────────────────────────
+            // RENDER DASHBOARD
+            // ─────────────────────────────────────
+            function renderDashboard() {
+                const stats = getGlobalStats();
+                dashboardStats.innerHTML = `
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${sites.length}</div>
+                        <div class="stat-label">Cantieri</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${stats.activeCount}</div>
+                        <div class="stat-label">In corso</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${fmtEuro(stats.totalQuote)}</div>
+                        <div class="stat-label">Preventivi</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${fmtEuro(stats.totalColl)}</div>
+                        <div class="stat-label">Incassato</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value ${stats.totalProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalProfit)}</div>
+                        <div class="stat-label">Utile Tot.</div>
+                    </div>
+                `;
+
+                const query = (searchInput.value || '').toLowerCase().trim();
+                let filtered = sites;
+                if (query) {
+                    filtered = sites.filter(s =>
+                        s.name.toLowerCase().includes(query) ||
+                        s.client.toLowerCase().includes(query)
+                    );
+                }
+
+                if (filtered.length === 0) {
+                    sitesGrid.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    if (query) {
+                        emptyState.querySelector('p strong').textContent = 'Nessun risultato';
+                        emptyState.querySelector('p:last-child').textContent = 'Prova con un altro termine di ricerca';
+                    } else {
+                        emptyState.querySelector('p strong').textContent = 'Nessun cantiere presente';
+                        emptyState.querySelector('p:last-child').textContent = 'Tocca il pulsante + per crearne uno';
+                    }
+                } else {
+                    emptyState.classList.add('hidden');
+                    sitesGrid.innerHTML = filtered.map(s => {
+                        const profit = getProfit(s);
+                        const profitClass = profit >= 0 ? 'card-profit-positive' : 'card-profit-negative';
+                        const statusClass = 'status-' + s.status.toLowerCase().replace(/\s/g, '-');
+                        return `
+                            <div class="site-card" data-site-id="${s.id}">
+                                <span class="card-status ${statusClass}">${s.status}</span>
+                                <div class="card-client">👤 ${escapeHtml(s.client)}</div>
+                                <div class="card-name">${escapeHtml(s.name)}</div>
+                                <div class="card-metrics">
+                                    <div class="card-metric"><span>Preventivo</span><span>${fmtEuro(s.quoteAmount)}</span></div>
+                                    <div class="card-metric"><span>Spese</span><span>${fmtEuro(getTotalExpenses(s))}</span></div>
+                                    <div class="card-metric"><span>Incassi</span><span>${fmtEuro(getTotalCollections(s))}</span></div>
+                                    <div class="card-metric"><span>Utile</span><span class="${profitClass}">${fmtEuro(profit)}</span></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Attach click handlers
+                $$('.site-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const sid = card.getAttribute('data-site-id');
+                        if (sid) showSiteDetail(sid);
+                    });
+                });
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ─────────────────────────────────────
+            // RENDER SITE DETAIL
+            // ─────────────────────────────────────
+            function renderSiteDetail(siteId) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) {
+                    showDashboard();
+                    return;
+                }
+                const totalExp = getTotalExpenses(site);
+                const totalColl = getTotalCollections(site);
+                const profit = getProfit(site);
+                const toCollect = getToCollect(site);
+
+                // Summary bar
+                detailSummaryBar.innerHTML = `
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value">${fmtEuro(site.quoteAmount)}</div>
+                        <div class="detail-summary-label">Preventivo</div>
+                    </div>
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value red">${fmtEuro(totalExp)}</div>
+                        <div class="detail-summary-label">Totale Spese</div>
+                    </div>
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value green">${fmtEuro(totalColl)}</div>
+                        <div class="detail-summary-label">Totale Incassi</div>
+                    </div>
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value">${fmtEuro(toCollect)}</div>
+                        <div class="detail-summary-label">Da Incassare</div>
+                    </div>
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value ${profit >= 0 ? 'green' : 'red'}">${fmtEuro(profit)}</div>
+                        <div class="detail-summary-label">Utile</div>
+                    </div>
+                `;
+
+                // Sections
+                detailSections.innerHTML = `
+                    <!-- Preventivo -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-quote">📋</span> Preventivo</h3>
+                            <button class="btn-sm btn-outline" data-action="edit-quote">✏️ Modifica</button>
+                        </div>
+                        <p style="font-size:1.2rem;font-weight:700;font-family:var(--font-mono);">${fmtEuro(site.quoteAmount)}</p>
+                        ${site.quoteNotes ? `<p style="color:var(--text-secondary);font-size:0.85rem;margin-top:4px;">📝 ${escapeHtml(site.quoteNotes)}</p>` : '<p style="color:var(--text-muted);font-size:0.8rem;">Nessuna nota</p>'}
+                    </div>
+
+                    <!-- Spese Materiali -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-expense">🧱</span> Spese Materiali</h3>
+                            <button class="btn-sm btn-accent" data-action="add-expense">+ Aggiungi</button>
+                        </div>
+                        ${renderItemList(site.expenses, 'expense', siteId, 'expense')}
+                    </div>
+
+                    <!-- Manodopera -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-labor">👷</span> Manodopera</h3>
+                            <button class="btn-sm btn-accent" data-action="add-labor">+ Aggiungi</button>
+                        </div>
+                        ${renderItemList(site.labor, 'labor', siteId, 'labor')}
+                    </div>
+
+                    <!-- Lavori Extra -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-extra">🔧</span> Lavori Extra</h3>
+                            <button class="btn-sm btn-accent" data-action="add-extrawork">+ Aggiungi</button>
+                        </div>
+                        ${renderItemList(site.extraWork, 'extrawork', siteId, 'extraWork')}
+                    </div>
+
+                    <!-- Incassi -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-collection">💰</span> Incassi</h3>
+                            <button class="btn-sm btn-accent" data-action="add-collection">+ Aggiungi</button>
+                        </div>
+                        ${renderItemList(site.collections, 'collection', siteId, 'collection')}
+                    </div>
+
+                    <!-- Documenti -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-doc">📄</span> Documenti</h3>
+                            <button class="btn-sm btn-accent" data-action="add-document">+ Aggiungi</button>
+                        </div>
+                        ${renderDocumentList(site.documents, siteId)}
+                    </div>
+
+                    <!-- Promemoria -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <h3><span class="section-icon icon-reminder">⏰</span> Promemoria</h3>
+                            <button class="btn-sm btn-accent" data-action="add-reminder">+ Aggiungi</button>
+                        </div>
+                        ${renderReminderList(site.reminders, siteId)}
+                    </div>
+                `;
+
+                // Attach event listeners
+                detailSections.querySelectorAll('[data-action]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const action = btn.getAttribute('data-action');
+                        handleDetailAction(action, siteId);
+                    });
+                });
+
+                // Attach delete buttons
+                detailSections.querySelectorAll('.btn-danger-sm').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const itemId = btn.getAttribute('data-item-id');
+                        const section = btn.getAttribute('data-section');
+                        handleDeleteItem(siteId, section, itemId);
+                    });
+                });
+
+                // Attach reminder checkboxes
+                detailSections.querySelectorAll('.reminder-check').forEach(cb => {
+                    cb.addEventListener('change', (e) => {
+                        e.stopPropagation();
+                        const itemId = cb.getAttribute('data-item-id');
+                        toggleReminder(siteId, itemId, cb.checked);
+                    });
+                });
+            }
+
+            function renderItemList(items, sectionType, siteId, sectionName) {
+                if (!items || items.length === 0) {
+                    return '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px 0;">Nessun elemento. Tocca "Aggiungi" per inserirne uno.</p>';
+                }
+                return `<ul class="item-list">${items.map(item => {
+                    let meta = '';
+                    let amountClass = 'expense';
+                    if (sectionName === 'collection') {
+                        amountClass = 'income';
+                        meta = `${fmtDate(item.date)} · ${item.method || 'N/D'}`;
+                    } else if (sectionName === 'expense') {
+                        meta = fmtDate(item.date);
+                    } else if (sectionName === 'labor') {
+                        meta = item.hours ? `${item.hours} ore` : '';
+                    }
+                    return `
+                        <li>
+                            <div class="item-info">
+                                <div class="item-desc">${escapeHtml(item.description)}</div>
+                                ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+                            </div>
+                            <span class="item-amount ${amountClass}">${fmtEuro(item.amount)}</span>
+                            <button class="btn-danger-sm" data-item-id="${item.id}" data-section="${sectionName}" title="Elimina">🗑️</button>
+                        </li>
+                    `;
+                }).join('')}</ul>`;
+            }
+
+            function renderDocumentList(docs, siteId) {
+                if (!docs || docs.length === 0) {
+                    return '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px 0;">Nessun documento. Tocca "Aggiungi" per registrarne uno.</p>';
+                }
+                return `<ul class="item-list">${docs.map(d => `
+                    <li>
+                        <div class="item-info">
+                            <div class="item-desc">📎 ${escapeHtml(d.name)}</div>
+                            <div class="item-meta">${fmtDate(d.date)} · <span class="doc-type-badge">${escapeHtml(d.type)}</span>${d.url ? ' · 🔗 <a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener" style="color:var(--info);">Link</a>' : ''}</div>
+                        </div>
+                        <button class="btn-danger-sm" data-item-id="${d.id}" data-section="document" title="Elimina">🗑️</button>
+                    </li>
+                `).join('')}</ul>`;
+            }
+
+            function renderReminderList(reminders, siteId) {
+                if (!reminders || reminders.length === 0) {
+                    return '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px 0;">Nessun promemoria. Tocca "Aggiungi" per crearne uno.</p>';
+                }
+                return `<ul class="item-list">${reminders.map(r => `
+                    <li class="${r.done ? 'reminder-done' : ''}">
+                        <input type="checkbox" class="reminder-check" data-item-id="${r.id}" ${r.done ? 'checked' : ''}>
+                        <div class="item-info">
+                            <div class="item-desc">${escapeHtml(r.text)}</div>
+                            ${r.date ? `<div class="item-meta">📅 ${fmtDate(r.date)}</div>` : ''}
+                        </div>
+                        <button class="btn-danger-sm" data-item-id="${r.id}" data-section="reminder" title="Elimina">🗑️</button>
+                    </li>
+                `).join('')}</ul>`;
+            }
+
+            function handleDetailAction(action, siteId) {
+                switch (action) {
+                    case 'edit-quote':
+                        openEditQuoteModal(siteId);
+                        break;
+                    case 'add-expense':
+                        openExpenseModal(siteId);
+                        break;
+                    case 'add-labor':
+                        openLaborModal(siteId);
+                        break;
+                    case 'add-extrawork':
+                        openExtraWorkModal(siteId);
+                        break;
+                    case 'add-collection':
+                        openCollectionModal(siteId);
+                        break;
+                    case 'add-document':
+                        openDocumentModal(siteId);
+                        break;
+                    case 'add-reminder':
+                        openReminderModal(siteId);
+                        break;
+                }
+            }
+
+            function handleDeleteItem(siteId, section, itemId) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) return;
+                const sectionMap = {
+                    'expense': 'expenses',
+                    'labor': 'labor',
+                    'extraWork': 'extraWork',
+                    'collection': 'collections',
+                    'document': 'documents',
+                    'reminder': 'reminders',
+                };
+                const key = sectionMap[section];
+                if (!key || !site[key]) return;
+                site[key] = site[key].filter(item => item.id !== itemId);
+                saveData();
+                renderSiteDetail(siteId);
+                showToast('🗑️ Elemento eliminato');
+            }
+
+            function toggleReminder(siteId, itemId, done) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) return;
+                const reminder = (site.reminders || []).find(r => r.id === itemId);
+                if (reminder) {
+                    reminder.done = done;
+                    saveData();
+                    renderSiteDetail(siteId);
+                }
+            }
+
+            // ─────────────────────────────────────
+            // MODAL OPENERS
+            // ─────────────────────────────────────
+            function openNewSiteModal() {
+                openModal('Nuovo Cantiere', [
+                    { name: 'name', label: 'Nome cantiere', type: 'text', required: true,
+                        placeholder: 'es. Cantiere Rossi' },
+                    { name: 'client', label: 'Cliente', type: 'text', required: true,
+                    placeholder: 'es. Mario Rossi' },
+                    { name: 'quoteAmount', label: 'Importo preventivo (€)', type: 'number', required: true,
+                        min: '0', value: '0' },
+                    { name: 'quoteNotes', label: 'Note preventivo', type: 'textarea', required: false,
+                        placeholder: 'Dettagli del preventivo...' },
+                    { name: 'status', label: 'Stato', type: 'select', required: true,
+                        options: ['Preventivo', 'In corso', 'Terminato'], value: 'Preventivo' },
+                ], (data) => {
+                    const newSite = {
+                        id: generateId(),
+                        name: data.name,
+                        client: data.client,
+                        quoteAmount: parseFloat(data.quoteAmount) || 0,
+                        quoteNotes: data.quoteNotes || '',
+                        status: data.status,
+                        expenses: [],
+                        labor: [],
+                        extraWork: [],
+                        collections: [],
+                        documents: [],
+                        reminders: [],
+                    };
+                    sites.unshift(newSite);
+                    saveData();
+                    renderDashboard();
+                    showToast('✅ Cantiere creato!');
+                    showSiteDetail(newSite.id);
+                });
+            }
+
+            function openEditSiteModal(siteId) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) return;
+                openModal('Modifica Cantiere', [
+                    { name: 'name', label: 'Nome cantiere', type: 'text', required: true, value: site.name },
+                    { name: 'client', label: 'Cliente', type: 'text', required: true, value: site.client },
+                    { name: 'quoteAmount', label: 'Importo preventivo (€)', type: 'number', required: true,
+                        min: '0', value: String(site.quoteAmount) },
+                    { name: 'quoteNotes', label: 'Note preventivo', type: 'textarea', required: false,
+                        value: site.quoteNotes || '' },
+                    { name: 'status', label: 'Stato', type: 'select', required: true,
+                        options: ['Preventivo', 'In corso', 'Terminato'], value: site.status },
+                ], (data) => {
+                    site.name = data.name;
+                    site.client = data.client;
+                    site.quoteAmount = parseFloat(data.quoteAmount) || 0;
+                    site.quoteNotes = data.quoteNotes || '';
+                    site.status = data.status;
+                    saveData();
+                    headerTitle.textContent = site.name;
+                    renderSiteDetail(siteId);
+                    showToast('✅ Cantiere aggiornato');
+                });
+            }
+
+            function openEditQuoteModal(siteId) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) return;
+                openModal('Modifica Preventivo', [
+                    { name: 'quoteAmount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                        value: String(site.quoteAmount) },
+                    { name: 'quoteNotes', label: 'Note', type: 'textarea', required: false,
+                        value: site.quoteNotes || '' },
+                ], (data) => {
+                    site.quoteAmount = parseFloat(data.quoteAmount) || 0;
+                    site.quoteNotes = data.quoteNotes || '';
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Preventivo aggiornato');
+                });
+            }
+
+            function openExpenseModal(siteId) {
+                const today = new Date().toISOString().split('T')[0];
+                openModal('Nuova Spesa Materiale', [
+                    { name: 'date', label: 'Data', type: 'date', required: true, value: today },
+                    { name: 'description', label: 'Descrizione', type: 'text', required: true,
+                        placeholder: 'es. Piastrelle 60x60' },
+                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                    value: '0' },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.expenses.push({
+                        id: generateId(),
+                        date: data.date,
+                        description: data.description,
+                        amount: parseFloat(data.amount) || 0,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Spesa aggiunta');
+                });
+            }
+
+            function openLaborModal(siteId) {
+                openModal('Nuova Manodopera', [
+                    { name: 'description', label: 'Descrizione', type: 'text', required: true,
+                        placeholder: 'es. Posatore 3 giorni' },
+                    { name: 'hours', label: 'Ore (opzionale)', type: 'number', required: false, min: '0',
+                        value: '' },
+                    { name: 'amount', label: 'Importo totale (€)', type: 'number', required: true, min: '0',
+                        value: '0' },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.labor.push({
+                        id: generateId(),
+                        description: data.description,
+                        hours: parseFloat(data.hours) || 0,
+                        amount: parseFloat(data.amount) || 0,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Manodopera aggiunta');
+                });
+            }
+
+            function openExtraWorkModal(siteId) {
+                openModal('Nuovo Lavoro Extra', [
+                    { name: 'description', label: 'Descrizione', type: 'text', required: true,
+                        placeholder: 'es. Riparazione tubo' },
+                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                    value: '0' },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.extraWork.push({
+                        id: generateId(),
+                        description: data.description,
+                        amount: parseFloat(data.amount) || 0,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Lavoro extra aggiunto');
+                });
+            }
+
+            function openCollectionModal(siteId) {
+                const today = new Date().toISOString().split('T')[0];
+                openModal('Nuovo Incasso', [
+                    { name: 'date', label: 'Data', type: 'date', required: true, value: today },
+                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                    value: '0' },
+                    { name: 'method', label: 'Metodo di pagamento', type: 'select', required: true,
+                        options: ['Bonifico', 'Contanti', 'Assegno', 'Carta', 'Altro'], value: 'Bonifico' },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.collections.push({
+                        id: generateId(),
+                        date: data.date,
+                        amount: parseFloat(data.amount) || 0,
+                        method: data.method,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Incasso registrato');
+                });
+            }
+
+            function openDocumentModal(siteId) {
+                const today = new Date().toISOString().split('T')[0];
+                openModal('Nuovo Documento', [
+                    { name: 'name', label: 'Nome documento', type: 'text', required: true,
+                        placeholder: 'es. Fattura acconto' },
+                    { name: 'type', label: 'Tipo', type: 'select', required: true,
+                        options: ['Preventivo', 'Fattura', 'Contratto', 'Foto', 'Altro'],
+                    value: 'Fattura' },
+                    { name: 'date', label: 'Data', type: 'date', required: false, value: today },
+                    { name: 'url', label: 'Link / URL (opzionale)', type: 'text', required: false,
+                        placeholder: 'https://...' },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.documents.push({
+                        id: generateId(),
+                        name: data.name,
+                        type: data.type,
+                        date: data.date || today,
+                        url: data.url || '',
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Documento aggiunto');
+                });
+            }
+
+            function openReminderModal(siteId) {
+                const today = new Date().toISOString().split('T')[0];
+                openModal('Nuovo Promemoria', [
+                    { name: 'text', label: 'Testo', type: 'text', required: true,
+                        placeholder: 'es. Ordinare materiali' },
+                    { name: 'date', label: 'Scadenza (opzionale)', type: 'date', required: false,
+                    value: today },
+                ], (data) => {
+                    const site = sites.find(s => s.id === siteId);
+                    if (!site) return;
+                    site.reminders.push({
+                        id: generateId(),
+                        text: data.text,
+                        date: data.date || '',
+                        done: false,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Promemoria aggiunto');
+                });
+            }
+
+            // ─────────────────────────────────────
+            // SEARCH
+            // ─────────────────────────────────────
+            searchInput.addEventListener('input', () => {
+                if (currentView === 'dashboard') renderDashboard();
+            });
+
+            // ─────────────────────────────────────
+            // INIT
+            // ─────────────────────────────────────
+            function init() {
+                loadData();
+                showDashboard();
+            }
+
+            init();
+
+            console.log('🏗️  Gestione Cantieri Edili — App pronta!');
+            console.log('   📱 Ottimizzata per smartphone e PC');
+            console.log('   💾 Dati salvati in localStorage');
+            console.log('   🧮 Calcoli automatici attivi');
+        })();
+    </script>
+</body>
+</html>
