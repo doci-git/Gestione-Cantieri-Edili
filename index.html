@@ -1216,8 +1216,11 @@
             function getTotalExpenses(site) {
                 const matExp = (site.expenses || []).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
                 const labExp = (site.labor || []).reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
-                const extExp = (site.extraWork || []).reduce((sum, ew) => sum + (parseFloat(ew.amount) || 0), 0);
-                return matExp + labExp + extExp;
+                return matExp + labExp;
+            }
+
+            function getTotalExtraWork(site) {
+                return (site.extraWork || []).reduce((sum, ew) => sum + (parseFloat(ew.amount) || 0), 0);
             }
 
             function getTotalCollections(site) {
@@ -1230,17 +1233,20 @@
 
             function getToCollect(site) {
                 const quote = parseFloat(site.quoteAmount) || 0;
+                const extraWork = getTotalExtraWork(site);
                 const collected = getTotalCollections(site);
-                return Math.max(0, quote - collected);
+                return Math.max(0, quote + extraWork - collected);
             }
 
             function getGlobalStats() {
                 let totalQuote = 0,
+                    totalExtraWork = 0,
                     totalExp = 0,
                     totalColl = 0,
                     totalProfit = 0;
                 sites.forEach(s => {
                     totalQuote += parseFloat(s.quoteAmount) || 0;
+                    totalExtraWork += getTotalExtraWork(s);
                     totalExp += getTotalExpenses(s);
                     totalColl += getTotalCollections(s);
                     totalProfit += getProfit(s);
@@ -1249,7 +1255,7 @@
                     totalQuote,
                     totalExp,
                     totalColl,
-                    totalToCollect: Math.max(0, totalQuote - totalColl),
+                    totalToCollect: Math.max(0, totalQuote + totalExtraWork - totalColl),
                     totalProfit,
                     activeCount: sites.filter(s => s.status === 'In corso').length,
                 };
@@ -1637,7 +1643,7 @@
                     <!-- Lavori Extra -->
                     <div class="detail-section">
                         <div class="detail-section-header">
-                            <h3><span class="section-icon icon-extra">🔧</span> Lavori Extra</h3>
+                            <h3><span class="section-icon icon-extra">🔧</span> Lavori Extra da riscuotere</h3>
                             <button class="btn-sm btn-accent" data-action="add-extrawork">+ Aggiungi</button>
                         </div>
                         ${renderItemList(site.extraWork, 'extrawork', siteId, 'extraWork')}
@@ -1710,6 +1716,8 @@
                     if (sectionName === 'collection') {
                         amountClass = 'income';
                         meta = `${fmtDate(item.date)} · ${item.method || 'N/D'}`;
+                    } else if (sectionName === 'extraWork') {
+                        amountClass = 'income';
                     } else if (sectionName === 'expense') {
                         meta = fmtDate(item.date);
                     } else if (sectionName === 'labor') {
