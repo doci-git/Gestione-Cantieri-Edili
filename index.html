@@ -1806,6 +1806,22 @@
                 };
                 const key = sectionMap[section];
                 if (!key || !site[key]) return;
+
+                const sectionLabels = {
+                    'expense': 'questa spesa materiale',
+                    'labor': 'questa voce di manodopera',
+                    'extraWork': 'questo lavoro extra',
+                    'collection': 'questo incasso',
+                    'document': 'questo documento',
+                    'reminder': 'questo promemoria',
+                };
+                const item = site[key].find(entry => entry.id === itemId);
+                if (!item) return;
+                const itemName = item.description || item.name || item.title || '';
+                const detail = itemName ? `\n\n${itemName}` : '';
+                const confirmed = confirm(`Confermi di voler eliminare ${sectionLabels[section] || 'questo elemento'}?${detail}\n\nQuesta operazione non può essere annullata.`);
+                if (!confirmed) return;
+
                 site[key] = site[key].filter(item => item.id !== itemId);
                 saveData();
                 renderSiteDetail(siteId);
