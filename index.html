@@ -202,6 +202,9 @@
         .stat-mini-card .stat-value.negative {
             color: var(--danger);
         }
+        .stat-mini-card .stat-value.extra {
+            color: #e29b00;
+        }
         .stat-mini-card .stat-label {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -1512,7 +1515,7 @@
                         <div class="stat-label">Incassato</div>
                     </div>
                     <div class="stat-mini-card">
-                        <div class="stat-value positive">${fmtEuro(stats.totalExtraWork)}</div>
+                        <div class="stat-value extra">${fmtEuro(stats.totalExtraWork)}</div>
                         <div class="stat-label">Extra da incassare</div>
                     </div>
                     <div class="stat-mini-card">
