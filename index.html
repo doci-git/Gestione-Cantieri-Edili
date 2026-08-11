@@ -176,7 +176,7 @@
         }
         @media (min-width: 768px) {
             .dashboard-stats {
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(6, 1fr);
                 gap: 12px;
             }
         }
@@ -1253,6 +1253,7 @@
                 });
                 return {
                     totalQuote,
+                    totalExtraWork,
                     totalExp,
                     totalColl,
                     totalToCollect: Math.max(0, totalQuote + totalExtraWork - totalColl),
@@ -1509,6 +1510,10 @@
                     <div class="stat-mini-card">
                         <div class="stat-value">${fmtEuro(stats.totalColl)}</div>
                         <div class="stat-label">Incassato</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value positive">${fmtEuro(stats.totalExtraWork)}</div>
+                        <div class="stat-label">Extra da incassare</div>
                     </div>
                     <div class="stat-mini-card">
                         <div class="stat-value ${stats.totalProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalProfit)}</div>
