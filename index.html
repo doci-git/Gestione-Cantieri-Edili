@@ -1187,6 +1187,7 @@
             let firestore = null;
             let unsubscribeFromCloud = null;
             let cloudConnectionPromise = null;
+            let cloudWritePromise = Promise.resolve();
 
             const passwordForm = document.getElementById('passwordForm');
             const accessPassword = document.getElementById('accessPassword');
@@ -1222,6 +1223,9 @@
                     s.expenses = s.expenses || [];
                     s.labor = s.labor || [];
                     s.extraWork = s.extraWork || [];
+                    s.extraWork.forEach(extra => {
+                        extra.collected = parseFloat(extra.collected) || 0;
+                    });
                     s.collections = s.collections || [];
                     s.documents = s.documents || [];
                     s.reminders = s.reminders || [];
@@ -1250,17 +1254,24 @@
             }
 
             function saveData() {
+                const sitesSnapshot = JSON.parse(JSON.stringify(sites));
+
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sitesSnapshot));
                 } catch (e) {
                     showToast('⚠️ Spazio di archiviazione esaurito');
                 }
 
                 if (firestore) {
-                    firestore.doc(CLOUD_DOCUMENT).set({ sites })
+                    cloudWritePromise = cloudWritePromise
+                        .catch(() => {})
+                        .then(() => firestore.doc(CLOUD_DOCUMENT).set({
+                            sites: sitesSnapshot,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        }))
                         .catch(error => {
                             console.error('Errore sincronizzazione Firebase:', error);
-                            showToast('⚠️ Dati salvati solo su questo dispositivo');
+                            showToast('⚠️ Modifica in attesa di sincronizzazione');
                         });
                 }
             }
@@ -1435,12 +1446,25 @@
                 return (site.extraWork || []).reduce((sum, ew) => sum + (parseFloat(ew.amount) || 0), 0);
             }
 
+            function getOutstandingExtraWork(site) {
+                return (site.extraWork || []).reduce((sum, ew) => {
+                    const amount = parseFloat(ew.amount) || 0;
+                    const collected = parseFloat(ew.collected) || 0;
+                    return sum + Math.max(0, amount - collected);
+                }, 0);
+            }
+
             function getTotalCollections(site) {
                 return (site.collections || []).reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
             }
 
             function getProfit(site) {
                 return getTotalCollections(site) - getTotalExpenses(site);
+            }
+
+            function getExpectedProfit(site) {
+                const quote = parseFloat(site.quoteAmount) || 0;
+                return quote + getTotalExtraWork(site) - getTotalExpenses(site);
             }
 
             function getToCollect(site) {
@@ -1453,23 +1477,29 @@
             function getGlobalStats() {
                 let totalQuote = 0,
                     totalExtraWork = 0,
+                    totalOutstandingExtraWork = 0,
                     totalExp = 0,
                     totalColl = 0,
-                    totalProfit = 0;
+                    totalProfit = 0,
+                    totalExpectedProfit = 0;
                 sites.forEach(s => {
                     totalQuote += parseFloat(s.quoteAmount) || 0;
                     totalExtraWork += getTotalExtraWork(s);
+                    totalOutstandingExtraWork += getOutstandingExtraWork(s);
                     totalExp += getTotalExpenses(s);
                     totalColl += getTotalCollections(s);
                     totalProfit += getProfit(s);
+                    totalExpectedProfit += getExpectedProfit(s);
                 });
                 return {
                     totalQuote,
                     totalExtraWork,
+                    totalOutstandingExtraWork,
                     totalExp,
                     totalColl,
                     totalToCollect: Math.max(0, totalQuote + totalExtraWork - totalColl),
                     totalProfit,
+                    totalExpectedProfit,
                     activeCount: sites.filter(s => s.status === 'In corso').length,
                 };
             }
@@ -1724,12 +1754,16 @@
                         <div class="stat-label">Incassato</div>
                     </div>
                     <div class="stat-mini-card">
-                        <div class="stat-value extra">${fmtEuro(stats.totalExtraWork)}</div>
+                        <div class="stat-value extra">${fmtEuro(stats.totalOutstandingExtraWork)}</div>
                         <div class="stat-label">Extra da incassare</div>
                     </div>
                     <div class="stat-mini-card">
+                        <div class="stat-value ${stats.totalExpectedProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalExpectedProfit)}</div>
+                        <div class="stat-label">Utile previsto</div>
+                    </div>
+                    <div class="stat-mini-card">
                         <div class="stat-value ${stats.totalProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalProfit)}</div>
-                        <div class="stat-label">Utile Tot.</div>
+                        <div class="stat-label">Utile reale</div>
                     </div>
                 `;
 
@@ -1800,7 +1834,8 @@
                 }
                 const totalExp = getTotalExpenses(site);
                 const totalColl = getTotalCollections(site);
-                const profit = getProfit(site);
+                const expectedProfit = getExpectedProfit(site);
+                const realProfit = getProfit(site);
                 const toCollect = getToCollect(site);
 
                 // Summary bar
@@ -1822,8 +1857,12 @@
                         <div class="detail-summary-label">Da Incassare</div>
                     </div>
                     <div class="detail-summary-item">
-                        <div class="detail-summary-value ${profit >= 0 ? 'green' : 'red'}">${fmtEuro(profit)}</div>
-                        <div class="detail-summary-label">Utile</div>
+                        <div class="detail-summary-value ${expectedProfit >= 0 ? 'green' : 'red'}">${fmtEuro(expectedProfit)}</div>
+                        <div class="detail-summary-label">Utile previsto</div>
+                    </div>
+                    <div class="detail-summary-item">
+                        <div class="detail-summary-value ${realProfit >= 0 ? 'green' : 'red'}">${fmtEuro(realProfit)}</div>
+                        <div class="detail-summary-label">Utile reale</div>
                     </div>
                 `;
 
@@ -1899,7 +1938,7 @@
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const action = btn.getAttribute('data-action');
-                        handleDetailAction(action, siteId);
+                        handleDetailAction(action, siteId, btn.getAttribute('data-item-id'));
                     });
                 });
 
@@ -1935,6 +1974,10 @@
                         meta = `${fmtDate(item.date)} · ${item.method || 'N/D'}`;
                     } else if (sectionName === 'extraWork') {
                         amountClass = 'income';
+                        const amount = parseFloat(item.amount) || 0;
+                        const collected = parseFloat(item.collected) || 0;
+                        const remaining = Math.max(0, amount - collected);
+                        meta = `Incassato: ${fmtEuro(collected)} · Residuo: ${fmtEuro(remaining)}`;
                     } else if (sectionName === 'expense') {
                         meta = fmtDate(item.date);
                     } else if (sectionName === 'labor') {
@@ -1947,6 +1990,7 @@
                                 ${meta ? `<div class="item-meta">${meta}</div>` : ''}
                             </div>
                             <span class="item-amount ${amountClass}">${fmtEuro(item.amount)}</span>
+                            ${sectionName === 'extraWork' && (parseFloat(item.amount) || 0) > (parseFloat(item.collected) || 0) ? `<button class="btn-sm btn-accent" data-action="collect-extra" data-item-id="${item.id}" title="Registra incasso">Incassa</button>` : ''}
                             <button class="btn-danger-sm" data-item-id="${item.id}" data-section="${sectionName}" title="Elimina">🗑️</button>
                         </li>
                     `;
@@ -1984,7 +2028,7 @@
                 `).join('')}</ul>`;
             }
 
-            function handleDetailAction(action, siteId) {
+            function handleDetailAction(action, siteId, itemId) {
                 switch (action) {
                     case 'edit-quote':
                         openEditQuoteModal(siteId);
@@ -1997,6 +2041,9 @@
                         break;
                     case 'add-extrawork':
                         openExtraWorkModal(siteId);
+                        break;
+                    case 'collect-extra':
+                        openExtraCollectionModal(siteId, itemId);
                         break;
                     case 'add-collection':
                         openCollectionModal(siteId);
@@ -2199,6 +2246,39 @@
                     saveData();
                     renderSiteDetail(siteId);
                     showToast('✅ Lavoro extra aggiunto');
+                });
+            }
+
+            function openExtraCollectionModal(siteId, extraId) {
+                const site = sites.find(s => s.id === siteId);
+                const extra = site && (site.extraWork || []).find(item => item.id === extraId);
+                if (!extra) return;
+
+                const remaining = Math.max(0, (parseFloat(extra.amount) || 0) - (parseFloat(extra.collected) || 0));
+                if (remaining <= 0) return;
+
+                const today = new Date().toISOString().split('T')[0];
+                openModal('Incassa lavoro extra', [
+                    { name: 'date', label: 'Data', type: 'date', required: true, value: today },
+                    { name: 'amount', label: 'Importo incassato (€)', type: 'number', required: true,
+                        min: '0', value: String(remaining) },
+                    { name: 'method', label: 'Metodo di pagamento', type: 'select', required: true,
+                        options: ['Bonifico', 'Contanti', 'Assegno', 'Carta', 'Altro'], value: 'Bonifico' },
+                ], (data) => {
+                    const amount = Math.min(parseFloat(data.amount) || 0, remaining);
+                    if (amount <= 0) return;
+                    extra.collected = (parseFloat(extra.collected) || 0) + amount;
+                    site.collections.push({
+                        id: generateId(),
+                        date: data.date,
+                        amount,
+                        method: data.method,
+                        extraWorkId: extra.id,
+                        description: `Incasso extra: ${extra.description}`,
+                    });
+                    saveData();
+                    renderSiteDetail(siteId);
+                    showToast('✅ Incasso extra registrato');
                 });
             }
 
