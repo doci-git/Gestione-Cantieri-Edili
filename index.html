@@ -364,6 +364,16 @@
         .site-card:active {
             transform: scale(0.98);
         }
+        .site-card .unpaid-dot {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 0 3px var(--danger-light);
+        }
         .site-card .card-status {
             position: absolute;
             top: 14px;
@@ -1792,8 +1802,10 @@
                         const profit = getProfit(s);
                         const profitClass = profit >= 0 ? 'card-profit-positive' : 'card-profit-negative';
                         const statusClass = 'status-' + s.status.toLowerCase().replace(/\s/g, '-');
+                        const amountToCollect = getToCollect(s);
                         return `
                             <div class="site-card" data-site-id="${s.id}">
+                                ${amountToCollect > 0 ? '<span class="unpaid-dot" title="Da incassare" aria-label="Da incassare"></span>' : ''}
                                 <span class="card-status ${statusClass}">${s.status}</span>
                                 <div class="card-client">👤 ${escapeHtml(s.client)}</div>
                                 <div class="card-name">${escapeHtml(s.name)}</div>
