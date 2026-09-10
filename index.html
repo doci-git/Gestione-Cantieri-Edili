@@ -1166,6 +1166,7 @@
             // STATE & PERSISTENCE
             // ─────────────────────────────────────
             const ACCESS_PASSWORD = '1122';
+            const ACCESS_SESSION_KEY = 'gestione_cantieri_accesso_autorizzato';
             const STORAGE_KEY = 'gestione_cantieri_data';
                         const FIREBASE_CONFIG = {
                                 apiKey: 'AIzaSyD3qcESGi7Hcc86rf27jJzZlGgzXm96a7Y',
@@ -1192,19 +1193,28 @@
             const passwordGate = document.getElementById('passwordGate');
             const passwordError = document.getElementById('passwordError');
 
+            function unlockApp() {
+                document.body.classList.remove('app-locked');
+                passwordGate.classList.add('hidden');
+                accessPassword.value = '';
+                passwordError.textContent = '';
+                init();
+            }
+
             passwordForm.addEventListener('submit', (event) => {
                 event.preventDefault();
                 if (accessPassword.value === ACCESS_PASSWORD) {
-                    document.body.classList.remove('app-locked');
-                    passwordGate.classList.add('hidden');
-                    accessPassword.value = '';
-                    passwordError.textContent = '';
-                    init();
+                    localStorage.setItem(ACCESS_SESSION_KEY, 'true');
+                    unlockApp();
                     return;
                 }
                 passwordError.textContent = 'Password non valida.';
                 accessPassword.select();
             });
+
+            if (localStorage.getItem(ACCESS_SESSION_KEY) === 'true') {
+                unlockApp();
+            }
 
             function normalizeSites(value) {
                 sites = Array.isArray(value) ? value : [];
