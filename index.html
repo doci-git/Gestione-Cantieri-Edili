@@ -1122,6 +1122,7 @@
         <div class="logo-icon">🏗️</div>
         <h1 id="headerTitle">Cantieri</h1>
         <span class="header-spacer"></span>
+        <button class="btn-header" id="btnActivity" title="Storico attività">🧾 Storico</button>
         <button class="btn-back hidden" id="btnBack" title="Torna alla lista">←</button>
         <button class="btn-header hidden" id="btnEditSite" title="Modifica cantiere">✏️ Modifica</button>
         <button class="btn-header hidden" id="btnDeleteSite" title="Elimina cantiere">🗑️</button>
@@ -1191,6 +1192,7 @@
                 .some(value => value.startsWith('INSERISCI_'));
             const CLOUD_DOCUMENT = 'gestione-cantieri/dati-condivisi';
             let sites = [];
+            let activityLog = [];
             let currentSiteId = null;
             let currentView = 'dashboard'; // 'dashboard' | 'detail'
             let modalCallback = null; // function(formData) => void
@@ -1244,12 +1246,17 @@
                 });
             }
 
+            function normalizeActivityLog(value) {
+                activityLog = Array.isArray(value) ? value.slice(0, 100) : [];
+            }
+
             async function loadData() {
                 try {
                     const raw = localStorage.getItem(STORAGE_KEY);
                     if (raw) {
                         normalizeSites(JSON.parse(raw));
                     }
+                    normalizeActivityLog(JSON.parse(localStorage.getItem(STORAGE_KEY + '_activity') || '[]'));
                 } catch (e) {
                     console.error('Errore caricamento dati:', e);
                     sites = [];
@@ -1263,11 +1270,22 @@
                 }
             }
 
-            function saveData() {
+            function saveData(activity, amount = null, siteName = null) {
                 const sitesSnapshot = JSON.parse(JSON.stringify(sites));
+                if (activity) {
+                    const currentSite = sites.find(site => site.id === currentSiteId);
+                    activityLog.unshift({
+                        text: activity,
+                        amount: amount === null ? null : parseFloat(amount) || 0,
+                        siteName: siteName || (currentSite ? currentSite.name : null),
+                        timestamp: new Date().toISOString(),
+                    });
+                    activityLog = activityLog.slice(0, 100);
+                }
 
                 try {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(sitesSnapshot));
+                    localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(activityLog));
                 } catch (e) {
                     showToast('⚠️ Spazio di archiviazione esaurito');
                 }
@@ -1277,6 +1295,7 @@
                         .catch(() => {})
                         .then(() => firestore.doc(CLOUD_DOCUMENT).set({
                             sites: sitesSnapshot,
+                            activityLog,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                         }))
                         .catch(error => {
@@ -1306,7 +1325,9 @@
                         unsubscribeFromCloud = firestore.doc(CLOUD_DOCUMENT).onSnapshot(snapshot => {
                             if (!snapshot.exists || !Array.isArray(snapshot.data().sites)) return;
                             normalizeSites(snapshot.data().sites);
+                            normalizeActivityLog(snapshot.data().activityLog);
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                            localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(activityLog));
                             if (currentView === 'detail' && currentSiteId) {
                                 renderSiteDetail(currentSiteId);
                             } else {
@@ -1320,9 +1341,11 @@
                         const document = await firestore.doc(CLOUD_DOCUMENT).get();
                         if (document.exists && Array.isArray(document.data().sites)) {
                             normalizeSites(document.data().sites);
+                            normalizeActivityLog(document.data().activityLog);
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                            localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(activityLog));
                         } else {
-                            await firestore.doc(CLOUD_DOCUMENT).set({ sites });
+                            await firestore.doc(CLOUD_DOCUMENT).set({ sites, activityLog });
                         }
                     } catch (error) {
                         console.error('Errore connessione Firebase:', error);
@@ -1547,6 +1570,7 @@
             const searchInput = $('#searchInput');
             const fabAdd = $('#fabAdd');
             const btnBack = $('#btnBack');
+            const btnActivity = $('#btnActivity');
             const btnEditSite = $('#btnEditSite');
             const btnDeleteSite = $('#btnDeleteSite');
             const headerTitle = $('#headerTitle');
@@ -1575,6 +1599,8 @@
             function openModal(title, fields, onSubmit) {
                 modalTitle.textContent = title;
                 modalBody.innerHTML = '';
+                modalSave.classList.remove('hidden');
+                modalCancel.textContent = 'Annulla';
                 fields.forEach(f => {
                     const group = document.createElement('div');
                     group.className = 'form-group';
@@ -1618,6 +1644,26 @@
             function closeModal() {
                 modalOverlay.classList.add('hidden');
                 modalCallback = null;
+                modalSave.classList.remove('hidden');
+                modalCancel.textContent = 'Annulla';
+            }
+
+            function openActivityLog() {
+                modalTitle.textContent = 'Storico attività';
+                modalBody.innerHTML = activityLog.length === 0
+                    ? '<p style="color:var(--text-muted);text-align:center;padding:20px 0;">Nessuna attività registrata.</p>'
+                    : `<ul class="item-list">${activityLog.map(entry => `
+                        <li>
+                            <div class="item-info">
+                                <div class="item-desc">${escapeHtml(entry.text)}</div>
+                                <div class="item-meta">Cantiere: ${escapeHtml(entry.siteName || 'N/D')} · Importo: ${entry.amount === null || entry.amount === undefined ? 'N/D' : fmtEuro(entry.amount)} · ${new Date(entry.timestamp).toLocaleString('it-IT')}</div>
+                            </div>
+                        </li>
+                    `).join('')}</ul>`;
+                modalCallback = null;
+                modalSave.classList.add('hidden');
+                modalCancel.textContent = 'Chiudi';
+                modalOverlay.classList.remove('hidden');
             }
 
             function getModalFormData() {
@@ -1673,6 +1719,7 @@
                 btnBack.classList.add('hidden');
                 btnEditSite.classList.add('hidden');
                 btnDeleteSite.classList.add('hidden');
+                btnActivity.classList.remove('hidden');
                 headerTitle.textContent = 'Cantieri';
                 fabAdd.textContent = '+';
                 fabAdd.style.display = 'flex';
@@ -1687,6 +1734,7 @@
                 btnBack.classList.remove('hidden');
                 btnEditSite.classList.remove('hidden');
                 btnDeleteSite.classList.remove('hidden');
+                btnActivity.classList.add('hidden');
                 const site = sites.find(s => s.id === siteId);
                 if (site) {
                     headerTitle.textContent = site.name;
@@ -1697,6 +1745,7 @@
             }
 
             btnBack.addEventListener('click', showDashboard);
+            btnActivity.addEventListener('click', openActivityLog);
             fabAdd.addEventListener('click', () => {
                 if (currentView === 'dashboard') {
                     openNewSiteModal();
@@ -1710,8 +1759,9 @@
             });
             btnDeleteSite.addEventListener('click', () => {
                 if (currentSiteId && confirm('Eliminare definitivamente questo cantiere? Tutti i dati andranno persi.')) {
+                    const deletedSite = sites.find(site => site.id === currentSiteId);
                     sites = sites.filter(s => s.id !== currentSiteId);
-                    saveData();
+                    saveData('Cantiere eliminato', null, deletedSite && deletedSite.name);
                     showToast('🗑️ Cantiere eliminato');
                     showDashboard();
                 }
@@ -2099,7 +2149,7 @@
                 if (!confirmed) return;
 
                 site[key] = site[key].filter(item => item.id !== itemId);
-                saveData();
+                saveData(`Elemento eliminato: ${itemName}`, item.amount, site.name);
                 renderSiteDetail(siteId);
                 showToast('🗑️ Elemento eliminato');
             }
@@ -2110,7 +2160,7 @@
                 const reminder = (site.reminders || []).find(r => r.id === itemId);
                 if (reminder) {
                     reminder.done = done;
-                    saveData();
+                    saveData(done ? 'Promemoria completato' : 'Promemoria riaperto');
                     renderSiteDetail(siteId);
                 }
             }
@@ -2146,7 +2196,7 @@
                         reminders: [],
                     };
                     sites.unshift(newSite);
-                    saveData();
+                    saveData(`Cantiere aggiunto: ${newSite.name}`, newSite.quoteAmount, newSite.name);
                     renderDashboard();
                     showToast('✅ Cantiere creato!');
                     showSiteDetail(newSite.id);
@@ -2171,7 +2221,7 @@
                     site.quoteAmount = parseFloat(data.quoteAmount) || 0;
                     site.quoteNotes = data.quoteNotes || '';
                     site.status = data.status;
-                    saveData();
+                    saveData(`Cantiere modificato: ${site.name}`, site.quoteAmount);
                     headerTitle.textContent = site.name;
                     renderSiteDetail(siteId);
                     showToast('✅ Cantiere aggiornato');
@@ -2189,7 +2239,7 @@
                 ], (data) => {
                     site.quoteAmount = parseFloat(data.quoteAmount) || 0;
                     site.quoteNotes = data.quoteNotes || '';
-                    saveData();
+                    saveData(`Preventivo modificato: ${site.name}`, site.quoteAmount);
                     renderSiteDetail(siteId);
                     showToast('✅ Preventivo aggiornato');
                 });
@@ -2212,7 +2262,7 @@
                         description: data.description,
                         amount: parseFloat(data.amount) || 0,
                     });
-                    saveData();
+                    saveData(`Spesa aggiunta: ${data.description}`, data.amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Spesa aggiunta');
                 });
@@ -2235,7 +2285,7 @@
                         hours: parseFloat(data.hours) || 0,
                         amount: parseFloat(data.amount) || 0,
                     });
-                    saveData();
+                    saveData(`Manodopera aggiunta: ${data.description}`, data.amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Manodopera aggiunta');
                 });
@@ -2255,7 +2305,7 @@
                         description: data.description,
                         amount: parseFloat(data.amount) || 0,
                     });
-                    saveData();
+                    saveData(`Lavoro extra aggiunto: ${data.description}`, data.amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Lavoro extra aggiunto');
                 });
@@ -2288,7 +2338,7 @@
                         extraWorkId: extra.id,
                         description: `Incasso extra: ${extra.description}`,
                     });
-                    saveData();
+                    saveData(`Incasso extra registrato: ${extra.description}`, amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Incasso extra registrato');
                 });
@@ -2311,7 +2361,7 @@
                         amount: parseFloat(data.amount) || 0,
                         method: data.method,
                     });
-                    saveData();
+                    saveData('Incasso aggiunto', data.amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Incasso registrato');
                 });
@@ -2338,7 +2388,7 @@
                         date: data.date || today,
                         url: data.url || '',
                     });
-                    saveData();
+                    saveData(`Documento aggiunto: ${data.name}`);
                     renderSiteDetail(siteId);
                     showToast('✅ Documento aggiunto');
                 });
@@ -2360,7 +2410,7 @@
                         date: data.date || '',
                         done: false,
                     });
-                    saveData();
+                    saveData(`Promemoria aggiunto: ${data.text}`);
                     renderSiteDetail(siteId);
                     showToast('✅ Promemoria aggiunto');
                 });
