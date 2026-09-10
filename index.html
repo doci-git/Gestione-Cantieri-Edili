@@ -65,6 +65,86 @@
             overflow-x: hidden;
         }
 
+        body.app-locked > *:not(#passwordGate) {
+            visibility: hidden;
+        }
+
+        .password-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--slate);
+        }
+        .password-gate-card {
+            width: min(100%, 380px);
+            padding: 28px 24px;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+        }
+        .password-gate-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            background: var(--accent-light);
+            font-size: 1.8rem;
+        }
+        .password-gate h2 {
+            margin-bottom: 6px;
+            color: var(--slate);
+            font-size: 1.35rem;
+        }
+        .password-gate p {
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .password-gate input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface-alt);
+            color: var(--text);
+            font: inherit;
+            text-align: center;
+        }
+        .password-gate input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .password-gate button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 13px;
+            border: 0;
+            border-radius: 24px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+        }
+        .password-gate button:hover {
+            background: var(--accent-hover);
+        }
+        .password-error {
+            min-height: 21px;
+            margin: 10px 0 0;
+            color: var(--danger) !important;
+            font-size: 0.8rem !important;
+        }
+
         button,
         input,
         select,
@@ -1013,7 +1093,19 @@
         }
     </style>
 </head>
-<body>
+<body class="app-locked">
+
+    <!-- ═══════════════ PASSWORD GATE ═══════════════ -->
+    <section class="password-gate" id="passwordGate" aria-label="Accesso protetto">
+        <form class="password-gate-card" id="passwordForm">
+            <div class="password-gate-icon" aria-hidden="true">🔒</div>
+            <h2>Gestione Cantieri</h2>
+            <p>Inserisci la password per accedere.</p>
+            <input type="password" id="accessPassword" placeholder="Password" autocomplete="current-password" required autofocus>
+            <button type="submit">Accedi</button>
+            <p class="password-error" id="passwordError" role="alert" aria-live="polite"></p>
+        </form>
+    </section>
 
     <!-- ═══════════════ HEADER ═══════════════ -->
     <header class="app-header" id="appHeader">
@@ -1066,33 +1158,73 @@
     <!-- ═══════════════ TOAST ═══════════════ -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
         (function() {
             // ─────────────────────────────────────
             // STATE & PERSISTENCE
             // ─────────────────────────────────────
+            const ACCESS_PASSWORD = '1122';
             const STORAGE_KEY = 'gestione_cantieri_data';
+                        const FIREBASE_CONFIG = {
+                                apiKey: 'AIzaSyD3qcESGi7Hcc86rf27jJzZlGgzXm96a7Y',
+                                authDomain: 'gestione-cantieri-b7720.firebaseapp.com',
+                                projectId: 'gestione-cantieri-b7720',
+                                storageBucket: 'gestione-cantieri-b7720.firebasestorage.app',
+                                messagingSenderId: '941668283160',
+                                appId: '1:941668283160:web:a77adcab4345bc8049e46d',
+                        };
+
+            const FIREBASE_CONFIGURED = !Object.values(FIREBASE_CONFIG)
+                .some(value => value.startsWith('INSERISCI_'));
+            const CLOUD_DOCUMENT = 'gestione-cantieri/dati-condivisi';
             let sites = [];
             let currentSiteId = null;
             let currentView = 'dashboard'; // 'dashboard' | 'detail'
             let modalCallback = null; // function(formData) => void
+            let firestore = null;
+            let unsubscribeFromCloud = null;
+            let cloudConnectionPromise = null;
 
-            function loadData() {
+            const passwordForm = document.getElementById('passwordForm');
+            const accessPassword = document.getElementById('accessPassword');
+            const passwordGate = document.getElementById('passwordGate');
+            const passwordError = document.getElementById('passwordError');
+
+            passwordForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (accessPassword.value === ACCESS_PASSWORD) {
+                    document.body.classList.remove('app-locked');
+                    passwordGate.classList.add('hidden');
+                    accessPassword.value = '';
+                    passwordError.textContent = '';
+                    init();
+                    return;
+                }
+                passwordError.textContent = 'Password non valida.';
+                accessPassword.select();
+            });
+
+            function normalizeSites(value) {
+                sites = Array.isArray(value) ? value : [];
+                sites.forEach(s => {
+                    s.expenses = s.expenses || [];
+                    s.labor = s.labor || [];
+                    s.extraWork = s.extraWork || [];
+                    s.collections = s.collections || [];
+                    s.documents = s.documents || [];
+                    s.reminders = s.reminders || [];
+                    s.quoteNotes = s.quoteNotes || '';
+                    s.status = s.status || 'Preventivo';
+                });
+            }
+
+            async function loadData() {
                 try {
                     const raw = localStorage.getItem(STORAGE_KEY);
                     if (raw) {
-                        sites = JSON.parse(raw);
-                        // Ensure all sites have proper structure
-                        sites.forEach(s => {
-                            s.expenses = s.expenses || [];
-                            s.labor = s.labor || [];
-                            s.extraWork = s.extraWork || [];
-                            s.collections = s.collections || [];
-                            s.documents = s.documents || [];
-                            s.reminders = s.reminders || [];
-                            s.quoteNotes = s.quoteNotes || '';
-                            s.status = s.status || 'Preventivo';
-                        });
+                        normalizeSites(JSON.parse(raw));
                     }
                 } catch (e) {
                     console.error('Errore caricamento dati:', e);
@@ -1100,6 +1232,10 @@
                 }
                 if (sites.length === 0) {
                     seedDemoData();
+                }
+
+                if (FIREBASE_CONFIGURED && typeof firebase !== 'undefined') {
+                    await connectToCloud();
                 }
             }
 
@@ -1109,7 +1245,70 @@
                 } catch (e) {
                     showToast('⚠️ Spazio di archiviazione esaurito');
                 }
+
+                if (firestore) {
+                    firestore.doc(CLOUD_DOCUMENT).set({ sites })
+                        .catch(error => {
+                            console.error('Errore sincronizzazione Firebase:', error);
+                            showToast('⚠️ Dati salvati solo su questo dispositivo');
+                        });
+                }
             }
+
+            async function connectToCloud() {
+                if (cloudConnectionPromise) return cloudConnectionPromise;
+
+                cloudConnectionPromise = (async () => {
+                    try {
+                        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+                        firestore = firebase.firestore();
+
+                        try {
+                            await firestore.enablePersistence({ synchronizeTabs: true });
+                        } catch (error) {
+                            if (error.code !== 'failed-precondition' && error.code !== 'unimplemented') {
+                                console.warn('Persistenza offline Firebase non disponibile:', error);
+                            }
+                        }
+
+                        if (unsubscribeFromCloud) unsubscribeFromCloud();
+                        unsubscribeFromCloud = firestore.doc(CLOUD_DOCUMENT).onSnapshot(snapshot => {
+                            if (!snapshot.exists || !Array.isArray(snapshot.data().sites)) return;
+                            normalizeSites(snapshot.data().sites);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                            if (currentView === 'detail' && currentSiteId) {
+                                renderSiteDetail(currentSiteId);
+                            } else {
+                                renderDashboard();
+                            }
+                        }, error => {
+                            console.error('Errore ascolto Firebase:', error);
+                            showToast('⚠️ Firebase offline: modifiche in coda');
+                        });
+
+                        const document = await firestore.doc(CLOUD_DOCUMENT).get();
+                        if (document.exists && Array.isArray(document.data().sites)) {
+                            normalizeSites(document.data().sites);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                        } else {
+                            await firestore.doc(CLOUD_DOCUMENT).set({ sites });
+                        }
+                    } catch (error) {
+                        console.error('Errore connessione Firebase:', error);
+                        showToast('⚠️ Firebase offline: modifiche in coda');
+                    } finally {
+                        cloudConnectionPromise = null;
+                    }
+                })();
+
+                return cloudConnectionPromise;
+            }
+
+            window.addEventListener('online', () => {
+                if (FIREBASE_CONFIGURED && typeof firebase !== 'undefined') {
+                    connectToCloud();
+                }
+            });
 
             function seedDemoData() {
                 const now = new Date();
@@ -2075,12 +2274,10 @@
             // ─────────────────────────────────────
             // INIT
             // ─────────────────────────────────────
-            function init() {
-                loadData();
+            async function init() {
+                await loadData();
                 showDashboard();
             }
-
-            init();
 
             console.log('🏗️  Gestione Cantieri Edili — App pronta!');
             console.log('   📱 Ottimizzata per smartphone e PC');
