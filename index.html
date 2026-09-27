@@ -131,7 +131,7 @@
             border: 0;
             border-radius: 24px;
             background: var(--accent);
-            color: #fff;
+            color: var(--text);
             cursor: pointer;
             font: inherit;
             font-weight: 700;
@@ -252,19 +252,19 @@
         }
         @media (min-width: 500px) {
             .dashboard-stats {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
         @media (min-width: 768px) {
             .dashboard-stats {
-                grid-template-columns: repeat(6, 1fr);
-                gap: 12px;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 10px;
             }
         }
         .stat-mini-card {
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 14px 12px;
+            padding: 11px 8px;
             box-shadow: var(--shadow-sm);
             text-align: center;
             border: 1px solid var(--border);
@@ -294,7 +294,6 @@
             margin-top: 2px;
             font-weight: 600;
         }
-
         .section-title-row {
             display: flex;
             align-items: center;
@@ -308,6 +307,13 @@
             font-weight: 700;
             letter-spacing: -0.01em;
             color: var(--slate);
+        }
+        .dashboard-tools {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: -2px 0 12px;
         }
         .search-input {
             padding: 10px 14px;
@@ -361,6 +367,10 @@
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
             border-color: var(--accent);
+        }
+        .site-card:focus-visible {
+            outline: 3px solid var(--info);
+            outline-offset: 3px;
         }
         .site-card:active {
             transform: scale(0.98);
@@ -466,7 +476,7 @@
             height: 56px;
             border-radius: 50%;
             background: var(--accent);
-            color: #fff;
+            color: var(--text);
             border: none;
             font-size: 1.6rem;
             cursor: pointer;
@@ -559,6 +569,49 @@
             font-weight: 700;
             margin-top: 1px;
         }
+        .detail-tabs {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            margin: 0 0 14px;
+            border-bottom: 1px solid var(--border);
+            scrollbar-width: thin;
+        }
+        .detail-tab {
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            border: 0;
+            border-bottom: 3px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .detail-tab[aria-pressed="true"] {
+            border-bottom-color: var(--accent-hover);
+            color: var(--text);
+        }
+        .detail-tab:focus-visible {
+            outline: 2px solid var(--info);
+            outline-offset: -2px;
+        }
+        @media (max-width: 599px) {
+            .detail-tab {
+                padding: 9px 8px;
+                font-size: 0.76rem;
+            }
+            .app-header #btnReportPdf,
+            .app-header #btnEditSite {
+                width: 44px;
+                min-width: 44px;
+                padding: 8px;
+                justify-content: center;
+                gap: 0;
+            }
+            .app-header .header-action-label { display: none; }
+        }
 
         .detail-section {
             background: var(--surface);
@@ -585,6 +638,26 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .expense-category-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+            gap: 4px 14px;
+            margin: 0 0 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .expense-category-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+        }
+        .expense-category-row strong {
+            color: var(--text);
+            font-family: var(--font-mono);
+            white-space: nowrap;
         }
         .section-icon {
             width: 32px;
@@ -645,7 +718,7 @@
         }
         .btn-accent {
             background: var(--accent);
-            color: #fff;
+            color: var(--text);
         }
         .btn-accent:hover {
             background: var(--accent-hover);
@@ -862,7 +935,7 @@
         }
         .btn-save {
             background: var(--accent);
-            color: #fff;
+            color: var(--text);
         }
         .btn-save:hover {
             background: var(--accent-hover);
@@ -1125,7 +1198,8 @@
         <span class="header-spacer"></span>
         <button class="btn-header" id="btnActivity" title="Storico attività">🧾 Storico</button>
         <button class="btn-back hidden" id="btnBack" title="Torna alla lista">←</button>
-        <button class="btn-header hidden" id="btnEditSite" title="Modifica cantiere">✏️ Modifica</button>
+        <button class="btn-header hidden" id="btnReportPdf" title="Genera report PDF" aria-label="Genera report PDF"><span aria-hidden="true">📄</span><span class="header-action-label">PDF</span></button>
+        <button class="btn-header hidden" id="btnEditSite" title="Modifica cantiere" aria-label="Modifica cantiere"><span aria-hidden="true">✏️</span><span class="header-action-label">Modifica</span></button>
         <button class="btn-header hidden" id="btnDeleteSite" title="Elimina cantiere">🗑️</button>
     </header>
 
@@ -1138,6 +1212,11 @@
                 <h2>📋 Tutti i cantieri</h2>
                 <input type="text" class="search-input" id="searchInput" placeholder="🔍 Cerca cantiere o cliente...">
             </div>
+            <div class="dashboard-tools" style="display:none;">
+                <button class="btn-sm btn-outline" id="btnExportData" title="Esporta copia di sicurezza">⬇️ Esporta backup</button>
+                <button class="btn-sm btn-outline" id="btnImportData" title="Ripristina una copia di sicurezza">⬆️ Ripristina backup</button>
+                <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
+            </div>
             <div class="sites-grid" id="sitesGrid"></div>
             <div class="empty-state hidden" id="emptyState">
                 <div class="empty-icon">🏗️</div>
@@ -1149,6 +1228,12 @@
         <!-- Site Detail View -->
         <div id="detailView" class="hidden">
             <div class="detail-summary-bar" id="detailSummaryBar"></div>
+            <nav class="detail-tabs" id="detailTabs" aria-label="Sezioni cantiere">
+                <button class="detail-tab" type="button" data-detail-tab="accounting" aria-pressed="true">Contabilità</button>
+                <button class="detail-tab" type="button" data-detail-tab="overview" aria-pressed="false">Preventivo</button>
+                <button class="detail-tab" type="button" data-detail-tab="documents" aria-pressed="false">Documenti</button>
+                <button class="detail-tab" type="button" data-detail-tab="reminders" aria-pressed="false">Promemoria</button>
+            </nav>
             <div id="detailSections"></div>
         </div>
     </div>
@@ -1157,7 +1242,7 @@
     <button class="fab" id="fabAdd" title="Nuovo cantiere">+</button>
 
     <!-- ═══════════════ MODAL ═══════════════ -->
-    <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-overlay hidden" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-sheet" id="modalSheet">
             <div class="modal-handle"></div>
             <h3 id="modalTitle">Modale</h3>
@@ -1178,6 +1263,17 @@
             // STATE & PERSISTENCE
             // ─────────────────────────────────────
             const ACCESS_PASSWORD = '1122';
+            const WORKER_HOURLY_RATE = 35;
+            const EXPENSE_CATEGORIES = [
+                'Non categorizzata',
+                'Materiali',
+                'Trasporti',
+                'Noleggi e attrezzature',
+                'Smaltimento',
+                'Servizi esterni',
+                'Spese generali',
+                'Altro',
+            ];
             const ACCESS_SESSION_KEY = 'gestione_cantieri_accesso_autorizzato';
             const STORAGE_KEY = 'gestione_cantieri_data';
                         const FIREBASE_CONFIG = {
@@ -1196,11 +1292,15 @@
             let activityLog = [];
             let currentSiteId = null;
             let currentView = 'dashboard'; // 'dashboard' | 'detail'
+            let currentDetailTab = 'accounting';
             let modalCallback = null; // function(formData) => void
             let firestore = null;
             let unsubscribeFromCloud = null;
             let cloudConnectionPromise = null;
             let cloudWritePromise = Promise.resolve();
+            let cloudSyncedSites = [];
+            let cloudSyncedActivityLog = [];
+            let modalReturnFocus = null;
 
             const passwordForm = document.getElementById('passwordForm');
             const accessPassword = document.getElementById('accessPassword');
@@ -1234,6 +1334,9 @@
                 sites = Array.isArray(value) ? value : [];
                 sites.forEach(s => {
                     s.expenses = s.expenses || [];
+                    s.expenses.forEach(expense => {
+                        expense.category = expense.category || 'Non categorizzata';
+                    });
                     s.labor = s.labor || [];
                     s.extraWork = s.extraWork || [];
                     s.extraWork.forEach(extra => {
@@ -1244,6 +1347,7 @@
                     s.reminders = s.reminders || [];
                     s.quoteNotes = s.quoteNotes || '';
                     s.status = s.status || 'Preventivo';
+                    s.completionDate = s.completionDate || '';
                 });
             }
 
@@ -1252,23 +1356,142 @@
             }
 
             async function loadData() {
+                let shouldSeedDemoData = false;
+                let storageAvailable = true;
+                let raw = null;
                 try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
+                    raw = localStorage.getItem(STORAGE_KEY);
+                } catch (e) {
+                    storageAvailable = false;
+                    console.error('Errore accesso archivio locale:', e);
+                }
+                if (raw) {
+                    try {
                         normalizeSites(JSON.parse(raw));
+                    } catch (e) {
+                        console.error('Errore caricamento cantieri:', e);
+                        sites = [];
+                        showToast('⚠️ Archivio cantieri non leggibile: importa un backup');
                     }
+                } else if (storageAvailable && raw === null) {
+                    shouldSeedDemoData = true;
+                }
+                try {
                     normalizeActivityLog(JSON.parse(localStorage.getItem(STORAGE_KEY + '_activity') || '[]'));
                 } catch (e) {
-                    console.error('Errore caricamento dati:', e);
+                    console.error('Errore caricamento storico attività:', e);
+                    activityLog = [];
+                }
+                if (!storageAvailable) {
                     sites = [];
                 }
-                if (sites.length === 0) {
+                if (shouldSeedDemoData) {
                     seedDemoData();
                 }
+                cloudSyncedSites = JSON.parse(JSON.stringify(sites));
+                cloudSyncedActivityLog = JSON.parse(JSON.stringify(activityLog));
 
                 if (FIREBASE_CONFIGURED && typeof firebase !== 'undefined') {
                     await connectToCloud();
                 }
+            }
+
+            function sameData(left, right) {
+                return JSON.stringify(left) === JSON.stringify(right);
+            }
+
+            function mergeCloudRecords(baseRecords, localRecords, remoteRecords) {
+                const baseById = new Map((baseRecords || []).map(item => [item.id, item]));
+                const localById = new Map((localRecords || []).map(item => [item.id, item]));
+                const remoteById = new Map((remoteRecords || []).map(item => [item.id, item]));
+                const merged = [];
+
+                (remoteRecords || []).forEach(remoteItem => {
+                    const baseItem = baseById.get(remoteItem.id);
+                    const localItem = localById.get(remoteItem.id);
+                    if (baseItem && !localItem) return;
+                    if (!baseItem || !localItem || sameData(baseItem, localItem)) {
+                        merged.push(remoteItem);
+                        return;
+                    }
+                    const mergedItem = { ...remoteItem };
+                    new Set([...Object.keys(baseItem), ...Object.keys(localItem)]).forEach(key => {
+                        if (!sameData(baseItem[key], localItem[key])) {
+                            if (Object.prototype.hasOwnProperty.call(localItem, key)) {
+                                mergedItem[key] = localItem[key];
+                            } else {
+                                delete mergedItem[key];
+                            }
+                        }
+                    });
+                    merged.push(mergedItem);
+                });
+
+                (localRecords || []).forEach(localItem => {
+                    if (!baseById.has(localItem.id) && !remoteById.has(localItem.id)) merged.push(localItem);
+                    if (baseById.has(localItem.id) && !remoteById.has(localItem.id) &&
+                        !sameData(baseById.get(localItem.id), localItem)) merged.push(localItem);
+                });
+                return merged;
+            }
+
+            function mergeCloudSites(baseSites, localSites, remoteSites) {
+                const baseById = new Map((baseSites || []).map(site => [site.id, site]));
+                const localById = new Map((localSites || []).map(site => [site.id, site]));
+                const remoteById = new Map((remoteSites || []).map(site => [site.id, site]));
+                const recordArrays = new Set(['expenses', 'labor', 'extraWork', 'collections', 'documents', 'reminders']);
+                const merged = [];
+
+                (remoteSites || []).forEach(remoteSite => {
+                    const baseSite = baseById.get(remoteSite.id);
+                    const localSite = localById.get(remoteSite.id);
+                    if (baseSite && !localSite) return;
+                    if (!baseSite || !localSite || sameData(baseSite, localSite)) {
+                        merged.push(remoteSite);
+                        return;
+                    }
+                    const mergedSite = { ...remoteSite };
+                    new Set([...Object.keys(baseSite), ...Object.keys(localSite)]).forEach(key => {
+                        if (sameData(baseSite[key], localSite[key])) return;
+                        if (!Object.prototype.hasOwnProperty.call(localSite, key)) {
+                            delete mergedSite[key];
+                        } else if (recordArrays.has(key)) {
+                            mergedSite[key] = mergeCloudRecords(baseSite[key], localSite[key], remoteSite[key]);
+                        } else {
+                            mergedSite[key] = localSite[key];
+                        }
+                    });
+                    merged.push(mergedSite);
+                });
+
+                (localSites || []).forEach(localSite => {
+                    if (!baseById.has(localSite.id) && !remoteById.has(localSite.id)) merged.push(localSite);
+                    if (baseById.has(localSite.id) && !remoteById.has(localSite.id) &&
+                        !sameData(baseById.get(localSite.id), localSite)) merged.push(localSite);
+                });
+                return merged;
+            }
+
+            function mergeActivityLogs(baseLog, localLog, remoteLog) {
+                const keyFor = entry => entry.id || JSON.stringify(entry);
+                const baseByKey = new Map((baseLog || []).map(entry => [keyFor(entry), entry]));
+                const localByKey = new Map((localLog || []).map(entry => [keyFor(entry), entry]));
+                const remoteByKey = new Map((remoteLog || []).map(entry => [keyFor(entry), entry]));
+                const merged = new Map();
+
+                remoteByKey.forEach((remoteEntry, key) => {
+                    const baseEntry = baseByKey.get(key);
+                    const localEntry = localByKey.get(key);
+                    if (baseEntry && !localEntry) return;
+                    merged.set(key, baseEntry && localEntry ? localEntry : remoteEntry);
+                });
+                localByKey.forEach((localEntry, key) => {
+                    if (!baseByKey.has(key)) merged.set(key, localEntry);
+                });
+
+                return [...merged.values()]
+                    .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime())
+                    .slice(0, 100);
             }
 
             function saveData(activity, amount = null, siteName = null) {
@@ -1276,6 +1499,7 @@
                 if (activity) {
                     const currentSite = sites.find(site => site.id === currentSiteId);
                     activityLog.unshift({
+                        id: generateId(),
                         text: activity,
                         amount: amount === null ? null : parseFloat(amount) || 0,
                         siteName: siteName || (currentSite ? currentSite.name : null),
@@ -1292,17 +1516,85 @@
                 }
 
                 if (firestore) {
+                    const baseSnapshot = JSON.parse(JSON.stringify(cloudSyncedSites));
+                    const baseActivitySnapshot = JSON.parse(JSON.stringify(cloudSyncedActivityLog));
+                    const activitySnapshot = JSON.parse(JSON.stringify(activityLog));
                     cloudWritePromise = cloudWritePromise
                         .catch(() => {})
-                        .then(() => firestore.doc(CLOUD_DOCUMENT).set({
-                            sites: sitesSnapshot,
-                            activityLog,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        .then(() => firestore.runTransaction(async transaction => {
+                            const documentRef = firestore.doc(CLOUD_DOCUMENT);
+                            const document = await transaction.get(documentRef);
+                            const remoteData = document.exists ? document.data() : {};
+                            const mergedSites = mergeCloudSites(
+                                baseSnapshot,
+                                sitesSnapshot,
+                                Array.isArray(remoteData.sites) ? remoteData.sites : [],
+                            );
+                            const mergedActivity = mergeActivityLogs(
+                                baseActivitySnapshot,
+                                activitySnapshot,
+                                remoteData.activityLog,
+                            );
+                            transaction.set(documentRef, {
+                                sites: mergedSites,
+                                activityLog: mergedActivity,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            });
+                            return { mergedSites, mergedActivity };
                         }))
+                        .then(result => {
+                            cloudSyncedSites = JSON.parse(JSON.stringify(result.mergedSites));
+                            activityLog = result.mergedActivity;
+                            cloudSyncedActivityLog = JSON.parse(JSON.stringify(result.mergedActivity));
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(result.mergedSites));
+                            localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(result.mergedActivity));
+                        })
                         .catch(error => {
                             console.error('Errore sincronizzazione Firebase:', error);
                             showToast('⚠️ Modifica in attesa di sincronizzazione');
                         });
+                }
+            }
+
+            function exportDataBackup() {
+                const backup = {
+                    format: 'gestione-cantieri-backup',
+                    version: 1,
+                    exportedAt: new Date().toISOString(),
+                    sites,
+                    activityLog,
+                };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const downloadUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `gestione-cantieri-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+                showToast('✅ Backup esportato');
+            }
+
+            async function importDataBackup(file) {
+                try {
+                    const backup = JSON.parse(await file.text());
+                    const importedSites = Array.isArray(backup) ? backup : backup.sites;
+                    if (!Array.isArray(importedSites) || importedSites.some(site =>
+                        !site || typeof site.id !== 'string' || typeof site.name !== 'string')) {
+                        throw new Error('Formato backup non valido');
+                    }
+                    if (!confirm(`Il ripristino sostituirà tutti i ${sites.length} cantieri attuali con ${importedSites.length} cantieri del backup. Continuare?`)) {
+                        return;
+                    }
+                    normalizeSites(importedSites);
+                    normalizeActivityLog(Array.isArray(backup.activityLog) ? backup.activityLog : []);
+                    saveData();
+                    showDashboard();
+                    showToast('✅ Backup ripristinato');
+                } catch (error) {
+                    console.error('Errore ripristino backup:', error);
+                    showToast('⚠️ File backup non valido o non leggibile');
                 }
             }
 
@@ -1326,7 +1618,9 @@
                         unsubscribeFromCloud = firestore.doc(CLOUD_DOCUMENT).onSnapshot(snapshot => {
                             if (!snapshot.exists || !Array.isArray(snapshot.data().sites)) return;
                             normalizeSites(snapshot.data().sites);
+                            cloudSyncedSites = JSON.parse(JSON.stringify(sites));
                             normalizeActivityLog(snapshot.data().activityLog);
+                            cloudSyncedActivityLog = JSON.parse(JSON.stringify(activityLog));
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
                             localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(activityLog));
                             if (currentView === 'detail' && currentSiteId) {
@@ -1342,11 +1636,24 @@
                         const document = await firestore.doc(CLOUD_DOCUMENT).get();
                         if (document.exists && Array.isArray(document.data().sites)) {
                             normalizeSites(document.data().sites);
+                            cloudSyncedSites = JSON.parse(JSON.stringify(sites));
                             normalizeActivityLog(document.data().activityLog);
+                            cloudSyncedActivityLog = JSON.parse(JSON.stringify(activityLog));
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
                             localStorage.setItem(STORAGE_KEY + '_activity', JSON.stringify(activityLog));
                         } else {
-                            await firestore.doc(CLOUD_DOCUMENT).set({ sites, activityLog });
+                            const documentRef = firestore.doc(CLOUD_DOCUMENT);
+                            const initialSites = JSON.parse(JSON.stringify(sites));
+                            const initialActivityLog = JSON.parse(JSON.stringify(activityLog));
+                            await firestore.runTransaction(async transaction => {
+                                const latestDocument = await transaction.get(documentRef);
+                                if (!latestDocument.exists) {
+                                    transaction.set(documentRef, {
+                                        sites: initialSites,
+                                        activityLog: initialActivityLog,
+                                    });
+                                }
+                            });
                         }
                     } catch (error) {
                         console.error('Errore connessione Firebase:', error);
@@ -1508,6 +1815,146 @@
                 return Math.max(0, quote + extraWork - collected);
             }
 
+            function generateSiteReportPdf(siteId) {
+                const site = sites.find(entry => entry.id === siteId);
+                if (!site) return;
+
+                const reportFrame = document.createElement('iframe');
+                reportFrame.id = 'siteReportFrame';
+                reportFrame.title = 'Report fine lavori';
+                reportFrame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2000;background:#fff;';
+                document.body.appendChild(reportFrame);
+                const reportWindow = reportFrame.contentWindow;
+                reportWindow.addEventListener('afterprint', () => reportFrame.remove(), { once: true });
+
+                const tableRows = (items, renderRow, colspan = 3) => {
+                    if (!items || items.length === 0) {
+                        return `<tr><td colspan="${colspan}" class="empty">Nessuna voce registrata</td></tr>`;
+                    }
+                    return items.map(renderRow).join('');
+                };
+                const today = fmtDate(new Date().toISOString().split('T')[0]);
+                const siteExpenseTotal = (site.expenses || []).reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                const laborTotal = (site.labor || []).reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                const collectionTotal = getTotalCollections(site);
+                const profit = getProfit(site);
+                const extraTotal = getTotalExtraWork(site);
+                const outstandingExtra = getOutstandingExtraWork(site);
+                const contractTotal = (parseFloat(site.quoteAmount) || 0) + extraTotal;
+                const totalExpenses = siteExpenseTotal + laborTotal;
+                const expectedProfit = getExpectedProfit(site);
+                const amountToCollect = getToCollect(site);
+                const extraRows = (site.extraWork || []).map(item => ({
+                    ...item,
+                    remaining: Math.max(0, (parseFloat(item.amount) || 0) - (parseFloat(item.collected) || 0)),
+                }));
+
+                reportWindow.document.open();
+                reportWindow.document.write(`<!DOCTYPE html>
+                    <html lang="it">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${escapeHtml(site.name)} - Report fine lavori</title>
+                        <style>
+                            * { box-sizing: border-box; }
+                            body { margin: 0; padding: 34px; color: #202b35; font: 13px/1.45 Arial, sans-serif; }
+                            header { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 18px; border-bottom: 3px solid #d99713; }
+                            h1 { margin: 0 0 4px; font-size: 25px; }
+                            h2 { margin: 22px 0 7px; font-size: 15px; break-after: avoid; }
+                            p { margin: 2px 0; color: #596774; }
+                            .date { text-align: right; white-space: nowrap; }
+                            .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0; }
+                            .metric { padding: 10px 11px; border: 1px solid #dfe5e9; border-radius: 4px; }
+                            .metric span { display: block; color: #596774; font-size: 10px; text-transform: uppercase; }
+                            .metric strong { display: block; margin-top: 3px; font-size: 16px; }
+                            .profit { border-color: #9bc8ad; background: #f1f8f3; }
+                            .subline { margin-top: 7px; font-size: 12px; }
+                            table { width: 100%; border-collapse: collapse; }
+                            thead { display: table-header-group; }
+                            tr { break-inside: avoid; }
+                            th, td { padding: 7px 9px; border-bottom: 1px solid #e5e9ec; text-align: left; }
+                            th { background: #f2f5f6; color: #46545f; font-size: 11px; text-transform: uppercase; }
+                            td.amount { width: 150px; text-align: right; white-space: nowrap; }
+                            th:last-child { text-align: right; }
+                            th.amount { text-align: right; }
+                            .empty { color: #7b8790; font-style: italic; }
+                            .total { font-weight: 700; text-align: right; }
+                            .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 40px; break-inside: avoid; }
+                            .signature { padding-top: 38px; border-bottom: 1px solid #66717a; text-align: center; }
+                            .signature span { display: block; margin-top: 6px; color: #596774; font-size: 11px; }
+                            footer { margin-top: 22px; padding-top: 9px; border-top: 1px solid #dfe5e9; color: #7b8790; font-size: 10px; }
+                            .report-actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 20px; }
+                            .report-actions button { padding: 8px 14px; border: 1px solid #cbd3d8; border-radius: 4px; background: #fff; color: #202b35; cursor: pointer; font: inherit; }
+                            @page { size: A4; margin: 15mm; }
+                            @media print { body { padding: 0; } .report-actions { display: none; } }
+                            @media (max-width: 600px) { body { padding: 18px; } .summary { grid-template-columns: repeat(2, 1fr); } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="report-actions"><button onclick="window.print()">Stampa / Salva PDF</button><button onclick="parent.document.getElementById('siteReportFrame').remove()">Chiudi</button></div>
+                        <header>
+                            <div>
+                                <h1>Report fine lavori</h1>
+                                <p><strong>${escapeHtml(site.name)}</strong></p>
+                                <p>Cliente: ${escapeHtml(site.client || 'Non indicato')} · Stato: ${escapeHtml(site.status || 'Non indicato')}</p>
+                                <p>Fine lavori: ${site.completionDate ? escapeHtml(fmtDate(site.completionDate)) : 'Non indicata'}</p>
+                            </div>
+                            <p class="date">Data report<br><strong>${today}</strong></p>
+                        </header>
+                        <section class="summary">
+                            <div class="metric"><span>Preventivo</span><strong>${fmtEuro(site.quoteAmount)}</strong></div>
+                            <div class="metric"><span>Lavori extra</span><strong>${fmtEuro(extraTotal)}</strong></div>
+                            <div class="metric"><span>Valore totale lavori</span><strong>${fmtEuro(contractTotal)}</strong></div>
+                            <div class="metric"><span>Incassi ricevuti</span><strong>${fmtEuro(collectionTotal)}</strong></div>
+                            <div class="metric"><span>Saldo ancora da incassare</span><strong>${fmtEuro(amountToCollect)}</strong></div>
+                            <div class="metric"><span>Totale spese</span><strong>${fmtEuro(totalExpenses)}</strong></div>
+                            <div class="metric"><span>Margine previsto</span><strong>${fmtEuro(expectedProfit)}</strong></div>
+                            <div class="metric profit"><span>Margine realizzato</span><strong>${fmtEuro(profit)}</strong></div>
+                            <div class="metric"><span>Extra da riscuotere</span><strong>${fmtEuro(outstandingExtra)}</strong></div>
+                        </section>
+                        <h2>Incassi</h2>
+                        <table><thead><tr><th>Descrizione</th><th>Data</th><th>Metodo</th><th class="amount">Importo</th></tr></thead>
+                            <tbody>${tableRows(site.collections, item => `
+                                <tr><td>${escapeHtml(item.description || 'Incasso')}</td><td>${item.date ? escapeHtml(fmtDate(item.date)) : '—'}</td><td>${escapeHtml(item.method || 'Non indicato')}</td><td class="amount">${fmtEuro(item.amount)}</td></tr>
+                            `, 4)}
+                                <tr><td colspan="3" class="total">Totale incassi</td><td class="amount"><strong>${fmtEuro(collectionTotal)}</strong></td></tr>
+                            </tbody>
+                        </table>
+                        <h2>Lavori extra</h2>
+                        <table><thead><tr><th>Descrizione</th><th class="amount">Valore</th><th class="amount">Incassato</th><th class="amount">Residuo</th></tr></thead>
+                            <tbody>${tableRows(extraRows, item => `
+                                <tr><td>${escapeHtml(item.description || 'Lavoro extra')}</td><td class="amount">${fmtEuro(item.amount)}</td><td class="amount">${fmtEuro(item.collected)}</td><td class="amount">${fmtEuro(item.remaining)}</td></tr>
+                            `, 4)}
+                                <tr><td class="total">Totale extra</td><td class="amount"><strong>${fmtEuro(extraTotal)}</strong></td><td></td><td class="amount"><strong>${fmtEuro(outstandingExtra)}</strong></td></tr>
+                            </tbody>
+                        </table>
+                        <h2>Spese di cantiere</h2>
+                        <table><thead><tr><th>Categoria</th><th>Descrizione</th><th>Data</th><th class="amount">Importo</th></tr></thead>
+                            <tbody>${tableRows(site.expenses, item => `
+                                <tr><td>${escapeHtml(item.category || 'Non categorizzata')}</td><td>${escapeHtml(item.description || 'Spesa')}</td><td>${item.date ? escapeHtml(fmtDate(item.date)) : '—'}</td><td class="amount">${fmtEuro(item.amount)}</td></tr>
+                            `, 4)}
+                                <tr><td colspan="3" class="total">Totale spese di cantiere</td><td class="amount"><strong>${fmtEuro(siteExpenseTotal)}</strong></td></tr>
+                            </tbody>
+                        </table>
+                        <h2>Operai e manodopera</h2>
+                        <table><thead><tr><th>Operaio</th><th>Ore</th><th>Tariffa oraria</th><th class="amount">Costo</th></tr></thead>
+                            <tbody>${tableRows(site.labor, item => `
+                                <tr><td>${escapeHtml(item.description || 'Manodopera')}</td><td>${parseFloat(item.hours) ? `${parseFloat(item.hours)} h` : '—'}</td><td>${item.hourlyRate ? `${fmtEuro(item.hourlyRate)}/ora` : 'Importo registrato'}</td><td class="amount">${fmtEuro(item.amount)}</td></tr>
+                            `, 4)}
+                                <tr><td colspan="3" class="total">Totale manodopera</td><td class="amount"><strong>${fmtEuro(laborTotal)}</strong></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="signatures">
+                            <div class="signature"><span>Firma impresa</span></div>
+                            <div class="signature"><span>Firma cliente</span></div>
+                        </div>
+                        <footer>Margine realizzato = incassi registrati − spese di cantiere − manodopera. Margine previsto = preventivo + lavori extra − spese registrate. Questi margini non includono imposte o costi aziendali non inseriti. Il saldo da incassare è calcolato sul valore lavori complessivo.</footer>
+                    <\/body>
+                    </html>`);
+                reportWindow.document.close();
+            }
+
             function getGlobalStats() {
                 let totalQuote = 0,
                     totalExtraWork = 0,
@@ -1567,11 +2014,16 @@
             const emptyState = $('#emptyState');
             const dashboardStats = $('#dashboardStats');
             const detailSummaryBar = $('#detailSummaryBar');
+            const detailTabs = $('#detailTabs');
             const detailSections = $('#detailSections');
             const searchInput = $('#searchInput');
+            const btnExportData = $('#btnExportData');
+            const btnImportData = $('#btnImportData');
+            const backupFileInput = $('#backupFileInput');
             const fabAdd = $('#fabAdd');
             const btnBack = $('#btnBack');
             const btnActivity = $('#btnActivity');
+            const btnReportPdf = $('#btnReportPdf');
             const btnEditSite = $('#btnEditSite');
             const btnDeleteSite = $('#btnDeleteSite');
             const headerTitle = $('#headerTitle');
@@ -1598,6 +2050,7 @@
             // MODAL SYSTEM
             // ─────────────────────────────────────
             function openModal(title, fields, onSubmit) {
+                modalReturnFocus = document.activeElement;
                 modalTitle.textContent = title;
                 modalBody.innerHTML = '';
                 modalSave.classList.remove('hidden');
@@ -1613,10 +2066,12 @@
                     if (f.type === 'select') {
                         input = document.createElement('select');
                         f.options.forEach(opt => {
+                            const optionValue = typeof opt === 'object' ? opt.value : opt;
+                            const optionLabel = typeof opt === 'object' ? opt.label : opt;
                             const o = document.createElement('option');
-                            o.value = opt;
-                            o.textContent = opt;
-                            if (f.value === opt) o.selected = true;
+                            o.value = optionValue;
+                            o.textContent = optionLabel;
+                            if (f.value === optionValue) o.selected = true;
                             input.appendChild(o);
                         });
                     } else if (f.type === 'textarea') {
@@ -1631,15 +2086,20 @@
                         if (f.type === 'number') {
                             input.step = '0.01';
                             input.min = f.min !== undefined ? f.min : '0';
+                            if (f.max !== undefined) input.max = f.max;
                         }
                     }
                     if (f.required) input.required = true;
                     input.setAttribute('data-field-name', f.name);
+                    input.id = 'modal-field-' + f.name;
+                    label.htmlFor = input.id;
                     group.appendChild(input);
                     modalBody.appendChild(group);
                 });
                 modalCallback = (formData) => onSubmit(formData);
                 modalOverlay.classList.remove('hidden');
+                const firstField = modalBody.querySelector('input, select, textarea');
+                if (firstField) firstField.focus();
             }
 
             function closeModal() {
@@ -1647,9 +2107,41 @@
                 modalCallback = null;
                 modalSave.classList.remove('hidden');
                 modalCancel.textContent = 'Annulla';
+                const returnFocus = modalReturnFocus;
+                modalReturnFocus = null;
+                if (returnFocus && returnFocus.isConnected && !returnFocus.closest('.hidden')) {
+                    returnFocus.focus();
+                }
+            }
+
+            function attachExtraCollectionLimit(site, collection = null) {
+                const extraSelect = modalBody.querySelector('[data-field-name="extraWorkId"]');
+                const amountInput = modalBody.querySelector('[data-field-name="amount"]');
+                if (!extraSelect || !amountInput) return;
+
+                const updateLimit = (resetAmount = false) => {
+                    const extra = (site.extraWork || []).find(item => item.id === extraSelect.value);
+                    if (!extra) {
+                        amountInput.removeAttribute('max');
+                        return;
+                    }
+                    const currentPayment = collection && collection.extraWorkId === extra.id
+                        ? parseFloat(collection.amount) || 0
+                        : 0;
+                    const remaining = Math.max(0,
+                        (parseFloat(extra.amount) || 0) - (parseFloat(extra.collected) || 0) + currentPayment);
+                    amountInput.max = remaining.toFixed(2);
+                    if (resetAmount || !amountInput.value || (parseFloat(amountInput.value) || 0) > remaining) {
+                        amountInput.value = remaining.toFixed(2);
+                    }
+                };
+
+                extraSelect.addEventListener('change', () => updateLimit(true));
+                updateLimit();
             }
 
             function openActivityLog() {
+                modalReturnFocus = document.activeElement;
                 modalTitle.textContent = 'Storico attività';
                 modalBody.innerHTML = activityLog.length === 0
                     ? '<p style="color:var(--text-muted);text-align:center;padding:20px 0;">Nessuna attività registrata.</p>'
@@ -1665,6 +2157,7 @@
                 modalSave.classList.add('hidden');
                 modalCancel.textContent = 'Chiudi';
                 modalOverlay.classList.remove('hidden');
+                modalCancel.focus();
             }
 
             function getModalFormData() {
@@ -1681,12 +2174,12 @@
 
             modalSave.addEventListener('click', () => {
                 if (modalCallback) {
+                    const callback = modalCallback;
                     const data = getModalFormData();
-                    // Basic validation
                     const requiredInputs = modalBody.querySelectorAll('[required]');
                     let valid = true;
                     requiredInputs.forEach(inp => {
-                        if (!inp.value || (inp.type === 'number' && parseFloat(inp.value) < 0)) {
+                        if (!inp.value || (inp.type === 'number' && !inp.checkValidity())) {
                             inp.style.borderColor = 'var(--danger)';
                             valid = false;
                         } else {
@@ -1697,8 +2190,8 @@
                         showToast('⚠️ Compila tutti i campi obbligatori');
                         return;
                     }
-                    modalCallback(data);
                     closeModal();
+                    callback(data);
                 }
             });
             modalCancel.addEventListener('click', closeModal);
@@ -1718,6 +2211,7 @@
                 dashboardView.classList.remove('hidden');
                 detailView.classList.add('hidden');
                 btnBack.classList.add('hidden');
+                btnReportPdf.classList.add('hidden');
                 btnEditSite.classList.add('hidden');
                 btnDeleteSite.classList.add('hidden');
                 btnActivity.classList.remove('hidden');
@@ -1730,9 +2224,11 @@
             function showSiteDetail(siteId) {
                 currentView = 'detail';
                 currentSiteId = siteId;
+                currentDetailTab = 'accounting';
                 dashboardView.classList.add('hidden');
                 detailView.classList.remove('hidden');
                 btnBack.classList.remove('hidden');
+                btnReportPdf.classList.remove('hidden');
                 btnEditSite.classList.remove('hidden');
                 btnDeleteSite.classList.remove('hidden');
                 btnActivity.classList.add('hidden');
@@ -1746,7 +2242,18 @@
             }
 
             btnBack.addEventListener('click', showDashboard);
+            detailTabs.addEventListener('click', event => {
+                const tab = event.target.closest('[data-detail-tab]');
+                if (tab) setDetailTab(tab.getAttribute('data-detail-tab'));
+            });
             btnActivity.addEventListener('click', openActivityLog);
+            btnExportData.addEventListener('click', exportDataBackup);
+            btnImportData.addEventListener('click', () => backupFileInput.click());
+            backupFileInput.addEventListener('change', async event => {
+                const file = event.target.files && event.target.files[0];
+                if (file) await importDataBackup(file);
+                backupFileInput.value = '';
+            });
             fabAdd.addEventListener('click', () => {
                 if (currentView === 'dashboard') {
                     openNewSiteModal();
@@ -1757,6 +2264,9 @@
 
             btnEditSite.addEventListener('click', () => {
                 if (currentSiteId) openEditSiteModal(currentSiteId);
+            });
+            btnReportPdf.addEventListener('click', () => {
+                if (currentSiteId) generateSiteReportPdf(currentSiteId);
             });
             btnDeleteSite.addEventListener('click', () => {
                 if (currentSiteId && confirm('Eliminare definitivamente questo cantiere? Tutti i dati andranno persi.')) {
@@ -1772,12 +2282,12 @@
                 const site = sites.find(s => s.id === currentSiteId);
                 if (!site) return;
                 const options = [
-                    { label: '💶 Spesa materiale', action: () => openExpenseModal(currentSiteId) },
-                    { label: '👷 Manodopera', action: () => openLaborModal(currentSiteId) },
-                    { label: '🔧 Lavoro extra', action: () => openExtraWorkModal(currentSiteId) },
-                    { label: '💰 Incasso', action: () => openCollectionModal(currentSiteId) },
-                    { label: '📄 Documento', action: () => openDocumentModal(currentSiteId) },
-                    { label: '⏰ Promemoria', action: () => openReminderModal(currentSiteId) },
+                    { label: '💶 Spesa di cantiere', tab: 'accounting', action: () => openExpenseModal(currentSiteId) },
+                    { label: '👷 Manodopera', tab: 'accounting', action: () => openLaborModal(currentSiteId) },
+                    { label: '🔧 Lavoro extra', tab: 'accounting', action: () => openExtraWorkModal(currentSiteId) },
+                    { label: '💰 Incasso', tab: 'accounting', action: () => openCollectionModal(currentSiteId) },
+                    { label: '📄 Documento', tab: 'documents', action: () => openDocumentModal(currentSiteId) },
+                    { label: '⏰ Promemoria', tab: 'reminders', action: () => openReminderModal(currentSiteId) },
                 ];
                 const fields = [{
                     name: 'choice',
@@ -1788,7 +2298,10 @@
                 }];
                 openModal('Aggiungi al cantiere', fields, (data) => {
                     const chosen = options.find(o => o.label === data.choice);
-                    if (chosen) chosen.action();
+                    if (chosen) {
+                        setDetailTab(chosen.tab);
+                        chosen.action();
+                    }
                 });
             }
 
@@ -1803,14 +2316,6 @@
                         <div class="stat-label">Cantieri</div>
                     </div>
                     <div class="stat-mini-card">
-                        <div class="stat-value">${stats.activeCount}</div>
-                        <div class="stat-label">In corso</div>
-                    </div>
-                    <div class="stat-mini-card">
-                        <div class="stat-value">${fmtEuro(stats.totalQuote)}</div>
-                        <div class="stat-label">Preventivi</div>
-                    </div>
-                    <div class="stat-mini-card">
                         <div class="stat-value">${fmtEuro(stats.totalColl)}</div>
                         <div class="stat-label">Incassato</div>
                     </div>
@@ -1819,16 +2324,24 @@
                         <div class="stat-label">Spese totali</div>
                     </div>
                     <div class="stat-mini-card">
+                        <div class="stat-value ${stats.totalProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalProfit)}</div>
+                        <div class="stat-label">Margine realizzato</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${stats.activeCount}</div>
+                        <div class="stat-label">In corso</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-value">${fmtEuro(stats.totalQuote)}</div>
+                        <div class="stat-label">Preventivi</div>
+                    </div>
+                    <div class="stat-mini-card">
                         <div class="stat-value extra">${fmtEuro(stats.totalOutstandingExtraWork)}</div>
                         <div class="stat-label">Extra da incassare</div>
                     </div>
                     <div class="stat-mini-card">
                         <div class="stat-value ${stats.totalExpectedProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalExpectedProfit)}</div>
-                        <div class="stat-label">Utile previsto</div>
-                    </div>
-                    <div class="stat-mini-card">
-                        <div class="stat-value ${stats.totalProfit >= 0 ? 'positive' : 'negative'}">${fmtEuro(stats.totalProfit)}</div>
-                        <div class="stat-label">Utile reale</div>
+                        <div class="stat-label">Margine previsto</div>
                     </div>
                 `;
 
@@ -1859,7 +2372,7 @@
                         const statusClass = 'status-' + s.status.toLowerCase().replace(/\s/g, '-');
                         const amountToCollect = getToCollect(s);
                         return `
-                            <div class="site-card" data-site-id="${s.id}">
+                            <div class="site-card" data-site-id="${s.id}" role="button" tabindex="0" aria-label="Apri scheda cantiere">
                                 ${amountToCollect > 0 ? '<span class="unpaid-dot" title="Da incassare" aria-label="Da incassare"></span>' : ''}
                                 <span class="card-status ${statusClass}">${s.status}</span>
                                 <div class="card-client">👤 ${escapeHtml(s.client)}</div>
@@ -1868,7 +2381,7 @@
                                     <div class="card-metric"><span>Preventivo</span><span>${fmtEuro(s.quoteAmount)}</span></div>
                                     <div class="card-metric"><span>Spese</span><span>${fmtEuro(getTotalExpenses(s))}</span></div>
                                     <div class="card-metric"><span>Incassi</span><span>${fmtEuro(getTotalCollections(s))}</span></div>
-                                    <div class="card-metric"><span>Utile</span><span class="${profitClass}">${fmtEuro(profit)}</span></div>
+                                    <div class="card-metric"><span>Margine</span><span class="${profitClass}">${fmtEuro(profit)}</span></div>
                                 </div>
                             </div>
                         `;
@@ -1880,6 +2393,12 @@
                     card.addEventListener('click', () => {
                         const sid = card.getAttribute('data-site-id');
                         if (sid) showSiteDetail(sid);
+                    });
+                    card.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            card.click();
+                        }
                     });
                 });
             }
@@ -1904,6 +2423,17 @@
                 const expectedProfit = getExpectedProfit(site);
                 const realProfit = getProfit(site);
                 const toCollect = getToCollect(site);
+                const expenseCategoryTotals = new Map();
+                (site.expenses || []).forEach(expense => {
+                    const category = expense.category || 'Non categorizzata';
+                    expenseCategoryTotals.set(category,
+                        (expenseCategoryTotals.get(category) || 0) + (parseFloat(expense.amount) || 0));
+                });
+                const expenseBreakdown = [...expenseCategoryTotals.entries()]
+                    .sort((left, right) => left[0].localeCompare(right[0], 'it'))
+                    .map(([category, amount]) => `
+                        <div class="expense-category-row"><span>${escapeHtml(category)}</span><strong>${fmtEuro(amount)}</strong></div>
+                    `).join('');
 
                 // Summary bar
                 detailSummaryBar.innerHTML = `
@@ -1925,18 +2455,18 @@
                     </div>
                     <div class="detail-summary-item">
                         <div class="detail-summary-value ${expectedProfit >= 0 ? 'green' : 'red'}">${fmtEuro(expectedProfit)}</div>
-                        <div class="detail-summary-label">Utile previsto</div>
+                        <div class="detail-summary-label">Margine previsto</div>
                     </div>
                     <div class="detail-summary-item">
                         <div class="detail-summary-value ${realProfit >= 0 ? 'green' : 'red'}">${fmtEuro(realProfit)}</div>
-                        <div class="detail-summary-label">Utile reale</div>
+                        <div class="detail-summary-label">Margine realizzato</div>
                     </div>
                 `;
 
                 // Sections
                 detailSections.innerHTML = `
                     <!-- Preventivo -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="overview">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-quote">📋</span> Preventivo</h3>
                             <button class="btn-sm btn-outline" data-action="edit-quote">✏️ Modifica</button>
@@ -1945,26 +2475,28 @@
                         ${site.quoteNotes ? `<p style="color:var(--text-secondary);font-size:0.85rem;margin-top:4px;">📝 ${escapeHtml(site.quoteNotes)}</p>` : '<p style="color:var(--text-muted);font-size:0.8rem;">Nessuna nota</p>'}
                     </div>
 
-                    <!-- Spese Materiali -->
-                    <div class="detail-section">
+                    <!-- Spese cantiere -->
+                    <div class="detail-section" data-detail-tab="accounting">
                         <div class="detail-section-header">
-                            <h3><span class="section-icon icon-expense">🧱</span> Spese Materiali</h3>
+                            <h3><span class="section-icon icon-expense">🧱</span> Spese di cantiere</h3>
                             <button class="btn-sm btn-accent" data-action="add-expense">+ Aggiungi</button>
                         </div>
+                        ${expenseBreakdown ? `<div class="expense-category-summary" aria-label="Totali per categoria">${expenseBreakdown}</div>` : ''}
                         ${renderItemList(site.expenses, 'expense', siteId, 'expense')}
                     </div>
 
                     <!-- Manodopera -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="accounting">
                         <div class="detail-section-header">
-                            <h3><span class="section-icon icon-labor">👷</span> Manodopera</h3>
+                            <h3><span class="section-icon icon-labor">👷</span> Operai e manodopera</h3>
                             <button class="btn-sm btn-accent" data-action="add-labor">+ Aggiungi</button>
                         </div>
+                        <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:8px;">Costo operaio calcolato a ${fmtEuro(WORKER_HOURLY_RATE)} per ora</p>
                         ${renderItemList(site.labor, 'labor', siteId, 'labor')}
                     </div>
 
                     <!-- Lavori Extra -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="accounting">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-extra">🔧</span> Lavori Extra da riscuotere</h3>
                             <button class="btn-sm btn-accent" data-action="add-extrawork">+ Aggiungi</button>
@@ -1973,7 +2505,7 @@
                     </div>
 
                     <!-- Incassi -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="accounting">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-collection">💰</span> Incassi</h3>
                             <button class="btn-sm btn-accent" data-action="add-collection">+ Aggiungi</button>
@@ -1982,7 +2514,7 @@
                     </div>
 
                     <!-- Documenti -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="documents">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-doc">📄</span> Documenti</h3>
                             <button class="btn-sm btn-accent" data-action="add-document">+ Aggiungi</button>
@@ -1991,7 +2523,7 @@
                     </div>
 
                     <!-- Promemoria -->
-                    <div class="detail-section">
+                    <div class="detail-section" data-detail-tab="reminders">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-reminder">⏰</span> Promemoria</h3>
                             <button class="btn-sm btn-accent" data-action="add-reminder">+ Aggiungi</button>
@@ -1999,13 +2531,15 @@
                         ${renderReminderList(site.reminders, siteId)}
                     </div>
                 `;
+                setDetailTab(currentDetailTab);
 
                 // Attach event listeners
                 detailSections.querySelectorAll('[data-action]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const action = btn.getAttribute('data-action');
-                        handleDetailAction(action, siteId, btn.getAttribute('data-item-id'));
+                        handleDetailAction(action, siteId, btn.getAttribute('data-item-id'),
+                            btn.getAttribute('data-section'));
                     });
                 });
 
@@ -2029,6 +2563,16 @@
                 });
             }
 
+            function setDetailTab(tabName) {
+                currentDetailTab = tabName;
+                detailTabs.querySelectorAll('[data-detail-tab]').forEach(button => {
+                    button.setAttribute('aria-pressed', String(button.getAttribute('data-detail-tab') === tabName));
+                });
+                detailSections.querySelectorAll('.detail-section[data-detail-tab]').forEach(section => {
+                    section.hidden = section.getAttribute('data-detail-tab') !== tabName;
+                });
+            }
+
             function renderItemList(items, sectionType, siteId, sectionName) {
                 if (!items || items.length === 0) {
                     return '<p style="color:var(--text-muted);font-size:0.8rem;padding:8px 0;">Nessun elemento. Tocca "Aggiungi" per inserirne uno.</p>';
@@ -2046,9 +2590,11 @@
                         const remaining = Math.max(0, amount - collected);
                         meta = `Incassato: ${fmtEuro(collected)} · Residuo: ${fmtEuro(remaining)}`;
                     } else if (sectionName === 'expense') {
-                        meta = fmtDate(item.date);
+                        meta = `${item.category || 'Non categorizzata'} · ${fmtDate(item.date)}`;
                     } else if (sectionName === 'labor') {
-                        meta = item.hours ? `${item.hours} ore` : '';
+                        meta = item.hours
+                            ? `${item.hours} ore${item.hourlyRate ? ` · ${fmtEuro(item.hourlyRate)}/ora` : ''}`
+                            : '';
                     }
                     return `
                         <li>
@@ -2058,6 +2604,7 @@
                             </div>
                             <span class="item-amount ${amountClass}">${fmtEuro(item.amount)}</span>
                             ${sectionName === 'extraWork' && (parseFloat(item.amount) || 0) > (parseFloat(item.collected) || 0) ? `<button class="btn-sm btn-accent" data-action="collect-extra" data-item-id="${item.id}" title="Registra incasso">Incassa</button>` : ''}
+                            <button class="btn-sm btn-outline" data-action="edit-item" data-item-id="${item.id}" data-section="${sectionName}" title="Modifica voce" aria-label="Modifica voce">✏️</button>
                             <button class="btn-danger-sm" data-item-id="${item.id}" data-section="${sectionName}" title="Elimina">🗑️</button>
                         </li>
                     `;
@@ -2074,6 +2621,7 @@
                             <div class="item-desc">📎 ${escapeHtml(d.name)}</div>
                             <div class="item-meta">${fmtDate(d.date)} · <span class="doc-type-badge">${escapeHtml(d.type)}</span>${d.url ? ' · 🔗 <a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener" style="color:var(--info);">Link</a>' : ''}</div>
                         </div>
+                        <button class="btn-sm btn-outline" data-action="edit-item" data-item-id="${d.id}" data-section="document" title="Modifica documento" aria-label="Modifica documento">✏️</button>
                         <button class="btn-danger-sm" data-item-id="${d.id}" data-section="document" title="Elimina">🗑️</button>
                     </li>
                 `).join('')}</ul>`;
@@ -2090,13 +2638,17 @@
                             <div class="item-desc">${escapeHtml(r.text)}</div>
                             ${r.date ? `<div class="item-meta">📅 ${fmtDate(r.date)}</div>` : ''}
                         </div>
+                        <button class="btn-sm btn-outline" data-action="edit-item" data-item-id="${r.id}" data-section="reminder" title="Modifica promemoria" aria-label="Modifica promemoria">✏️</button>
                         <button class="btn-danger-sm" data-item-id="${r.id}" data-section="reminder" title="Elimina">🗑️</button>
                     </li>
                 `).join('')}</ul>`;
             }
 
-            function handleDetailAction(action, siteId, itemId) {
+            function handleDetailAction(action, siteId, itemId, section) {
                 switch (action) {
+                    case 'edit-item':
+                        openEditItemModal(siteId, section, itemId);
+                        break;
                     case 'edit-quote':
                         openEditQuoteModal(siteId);
                         break;
@@ -2152,7 +2704,18 @@
                 const detail = itemName ? `\n\n${itemName}` : '';
                 const confirmed = confirm(`Confermi di voler eliminare ${sectionLabels[section] || 'questo elemento'}?${detail}\n\nQuesta operazione non può essere annullata.`);
                 if (!confirmed) return;
-
+                if (section === 'collection' && item.extraWorkId) {
+                    const relatedExtra = (site.extraWork || []).find(extra => extra.id === item.extraWorkId);
+                    if (relatedExtra) {
+                        relatedExtra.collected = Math.max(0,
+                            (parseFloat(relatedExtra.collected) || 0) - (parseFloat(item.amount) || 0));
+                    }
+                }
+                if (section === 'extraWork') {
+                    site.collections.forEach(collection => {
+                        if (collection.extraWorkId === item.id) delete collection.extraWorkId;
+                    });
+                }
                 site[key] = site[key].filter(item => item.id !== itemId);
                 saveData(`Elemento eliminato: ${itemName}`, item.amount, site.name);
                 renderSiteDetail(siteId);
@@ -2193,6 +2756,7 @@
                         quoteAmount: parseFloat(data.quoteAmount) || 0,
                         quoteNotes: data.quoteNotes || '',
                         status: data.status,
+                        completionDate: data.status === 'Terminato' ? new Date().toISOString().split('T')[0] : '',
                         expenses: [],
                         labor: [],
                         extraWork: [],
@@ -2220,11 +2784,16 @@
                         value: site.quoteNotes || '' },
                     { name: 'status', label: 'Stato', type: 'select', required: true,
                         options: ['Preventivo', 'In corso', 'Terminato'], value: site.status },
+                    { name: 'completionDate', label: 'Data fine lavori (opzionale)', type: 'date', required: false,
+                        value: site.completionDate || '' },
                 ], (data) => {
                     site.name = data.name;
                     site.client = data.client;
                     site.quoteAmount = parseFloat(data.quoteAmount) || 0;
                     site.quoteNotes = data.quoteNotes || '';
+                    site.completionDate = data.completionDate || (data.status === 'Terminato' && site.status !== 'Terminato'
+                        ? new Date().toISOString().split('T')[0]
+                        : '');
                     site.status = data.status;
                     saveData(`Cantiere modificato: ${site.name}`, site.quoteAmount);
                     headerTitle.textContent = site.name;
@@ -2250,13 +2819,148 @@
                 });
             }
 
+            function openEditItemModal(siteId, section, itemId) {
+                const site = sites.find(entry => entry.id === siteId);
+                const sectionMap = {
+                    expense: 'expenses',
+                    labor: 'labor',
+                    extraWork: 'extraWork',
+                    collection: 'collections',
+                    document: 'documents',
+                    reminder: 'reminders',
+                };
+                const key = sectionMap[section];
+                const item = site && key && (site[key] || []).find(entry => entry.id === itemId);
+                if (!site || !item) return;
+
+                let title = 'Modifica voce';
+                let fields = [];
+                let workerRate = 0;
+                if (section === 'expense') {
+                    title = 'Modifica spesa di cantiere';
+                    fields = [
+                        { name: 'date', label: 'Data', type: 'date', required: true, value: item.date || '' },
+                        { name: 'category', label: 'Categoria', type: 'select', required: true,
+                            options: [...new Set([...EXPENSE_CATEGORIES, item.category || 'Non categorizzata'])],
+                            value: item.category || 'Non categorizzata' },
+                        { name: 'description', label: 'Descrizione', type: 'text', required: true, value: item.description || '' },
+                        { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0.01', value: String(item.amount || 0) },
+                    ];
+                } else if (section === 'labor') {
+                    title = 'Modifica operaio';
+                    workerRate = parseFloat(item.hourlyRate) || 0;
+                    fields = [
+                        { name: 'description', label: workerRate ? 'Nome operaio' : 'Descrizione', type: 'text', required: true, value: item.description || '' },
+                        { name: 'hours', label: workerRate ? `Ore lavorate (${fmtEuro(workerRate)}/ora)` : 'Ore (opzionale)', type: 'number', required: workerRate > 0, min: workerRate ? '0.01' : '0', value: String(item.hours || '') },
+                    ];
+                    if (!workerRate) {
+                        fields.push({ name: 'amount', label: 'Importo totale (€)', type: 'number', required: true, min: '0.01', value: String(item.amount || 0) });
+                    }
+                } else if (section === 'extraWork') {
+                    title = 'Modifica lavoro extra';
+                    fields = [
+                        { name: 'description', label: 'Descrizione', type: 'text', required: true, value: item.description || '' },
+                        { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: String(parseFloat(item.collected) || 0), value: String(item.amount || 0) },
+                    ];
+                } else if (section === 'collection') {
+                    title = 'Modifica incasso';
+                    fields = [
+                        { name: 'date', label: 'Data', type: 'date', required: true, value: item.date || '' },
+                        { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0.01', value: String(item.amount || 0) },
+                        { name: 'method', label: 'Metodo di pagamento', type: 'select', required: true,
+                            options: ['Bonifico', 'Contanti', 'Assegno', 'Carta', 'Altro'], value: item.method || 'Bonifico' },
+                    ];
+                    if ((site.extraWork || []).length > 0) {
+                        fields.push({
+                            name: 'extraWorkId', label: 'Lavoro extra associato', type: 'select', required: false,
+                            value: item.extraWorkId || '',
+                            options: [
+                                { value: '', label: 'Incasso generico' },
+                                ...site.extraWork.filter(extra =>
+                                    extra.id === item.extraWorkId ||
+                                    (parseFloat(extra.amount) || 0) > (parseFloat(extra.collected) || 0)
+                                ).map(extra => ({ value: extra.id, label: extra.description })),
+                            ],
+                        });
+                    }
+                } else if (section === 'document') {
+                    title = 'Modifica documento';
+                    fields = [
+                        { name: 'name', label: 'Nome documento', type: 'text', required: true, value: item.name || '' },
+                        { name: 'type', label: 'Tipo', type: 'select', required: true,
+                            options: ['Preventivo', 'Fattura', 'Contratto', 'Foto', 'Altro'], value: item.type || 'Altro' },
+                        { name: 'date', label: 'Data', type: 'date', required: false, value: item.date || '' },
+                        { name: 'url', label: 'Link / URL (opzionale)', type: 'text', required: false, value: item.url || '' },
+                    ];
+                } else if (section === 'reminder') {
+                    title = 'Modifica promemoria';
+                    fields = [
+                        { name: 'text', label: 'Testo', type: 'text', required: true, value: item.text || '' },
+                        { name: 'date', label: 'Scadenza (opzionale)', type: 'date', required: false, value: item.date || '' },
+                    ];
+                } else {
+                    return;
+                }
+
+                openModal(title, fields, data => {
+                    if (section === 'expense') {
+                        Object.assign(item, { date: data.date, category: data.category, description: data.description, amount: data.amount });
+                    } else if (section === 'labor') {
+                        item.description = data.description;
+                        item.hours = parseFloat(data.hours) || 0;
+                        if (workerRate) {
+                            item.hourlyRate = workerRate;
+                            item.amount = item.hours * workerRate;
+                        } else {
+                            item.amount = data.amount;
+                        }
+                    } else if (section === 'extraWork') {
+                        item.description = data.description;
+                        item.amount = data.amount;
+                    } else if (section === 'collection') {
+                        const oldExtra = (site.extraWork || []).find(extra => extra.id === item.extraWorkId);
+                        if (oldExtra) {
+                            oldExtra.collected = Math.max(0,
+                                (parseFloat(oldExtra.collected) || 0) - (parseFloat(item.amount) || 0));
+                        }
+                        const newExtra = (site.extraWork || []).find(extra => extra.id === data.extraWorkId);
+                        const amount = parseFloat(data.amount) || 0;
+                        if (newExtra) {
+                            const remaining = Math.max(0,
+                                (parseFloat(newExtra.amount) || 0) - (parseFloat(newExtra.collected) || 0));
+                            if (amount > remaining) return;
+                            newExtra.collected = (parseFloat(newExtra.collected) || 0) + amount;
+                            item.extraWorkId = newExtra.id;
+                            item.description = `Incasso extra: ${newExtra.description}`;
+                        } else {
+                            delete item.extraWorkId;
+                            delete item.description;
+                        }
+                        item.date = data.date;
+                        item.amount = amount;
+                        item.method = data.method;
+                    } else if (section === 'document') {
+                        Object.assign(item, { name: data.name, type: data.type, date: data.date, url: data.url });
+                    } else if (section === 'reminder') {
+                        Object.assign(item, { text: data.text, date: data.date });
+                    }
+                    saveData(`Voce modificata: ${item.description || item.name || item.text || section}`, item.amount, site.name);
+                    renderSiteDetail(siteId);
+                    showToast('✅ Voce aggiornata');
+                });
+                if (section === 'collection' && item.extraWorkId) attachExtraCollectionLimit(site, item);
+            }
+
             function openExpenseModal(siteId) {
                 const today = new Date().toISOString().split('T')[0];
-                openModal('Nuova Spesa Materiale', [
+                openModal('Nuova spesa di cantiere', [
                     { name: 'date', label: 'Data', type: 'date', required: true, value: today },
+                    { name: 'category', label: 'Categoria', type: 'select', required: true,
+                        options: EXPENSE_CATEGORIES.filter(category => category !== 'Non categorizzata'),
+                        value: 'Materiali' },
                     { name: 'description', label: 'Descrizione', type: 'text', required: true,
                         placeholder: 'es. Piastrelle 60x60' },
-                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0.01',
                     value: '0' },
                 ], (data) => {
                     const site = sites.find(s => s.id === siteId);
@@ -2264,35 +2968,37 @@
                     site.expenses.push({
                         id: generateId(),
                         date: data.date,
+                        category: data.category,
                         description: data.description,
                         amount: parseFloat(data.amount) || 0,
                     });
-                    saveData(`Spesa aggiunta: ${data.description}`, data.amount);
+                    saveData(`Spesa aggiunta (${data.category}): ${data.description}`, data.amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Spesa aggiunta');
                 });
             }
 
             function openLaborModal(siteId) {
-                openModal('Nuova Manodopera', [
-                    { name: 'description', label: 'Descrizione', type: 'text', required: true,
-                        placeholder: 'es. Posatore 3 giorni' },
-                    { name: 'hours', label: 'Ore (opzionale)', type: 'number', required: false, min: '0',
+                openModal('Aggiungi operaio', [
+                    { name: 'description', label: 'Nome operaio', type: 'text', required: true,
+                        placeholder: 'es. Mario Rossi' },
+                    { name: 'hours', label: `Ore lavorate (${fmtEuro(WORKER_HOURLY_RATE)}/ora)`, type: 'number', required: true, min: '0.01',
                         value: '' },
-                    { name: 'amount', label: 'Importo totale (€)', type: 'number', required: true, min: '0',
-                        value: '0' },
                 ], (data) => {
                     const site = sites.find(s => s.id === siteId);
                     if (!site) return;
+                    const hours = parseFloat(data.hours) || 0;
+                    const amount = hours * WORKER_HOURLY_RATE;
                     site.labor.push({
                         id: generateId(),
                         description: data.description,
-                        hours: parseFloat(data.hours) || 0,
-                        amount: parseFloat(data.amount) || 0,
+                        hours,
+                        hourlyRate: WORKER_HOURLY_RATE,
+                        amount,
                     });
-                    saveData(`Manodopera aggiunta: ${data.description}`, data.amount);
+                    saveData(`Operaio aggiunto: ${data.description} (${hours} ore)`, amount);
                     renderSiteDetail(siteId);
-                    showToast('✅ Manodopera aggiunta');
+                    showToast(`✅ Costo operaio: ${fmtEuro(amount)}`);
                 });
             }
 
@@ -2328,7 +3034,7 @@
                 openModal('Incassa lavoro extra', [
                     { name: 'date', label: 'Data', type: 'date', required: true, value: today },
                     { name: 'amount', label: 'Importo incassato (€)', type: 'number', required: true,
-                        min: '0', value: String(remaining) },
+                        min: '0.01', max: String(remaining), value: String(remaining) },
                     { name: 'method', label: 'Metodo di pagamento', type: 'select', required: true,
                         options: ['Bonifico', 'Contanti', 'Assegno', 'Carta', 'Altro'], value: 'Bonifico' },
                 ], (data) => {
@@ -2350,26 +3056,60 @@
             }
 
             function openCollectionModal(siteId) {
+                const site = sites.find(s => s.id === siteId);
+                if (!site) return;
                 const today = new Date().toISOString().split('T')[0];
-                openModal('Nuovo Incasso', [
+                const fields = [
                     { name: 'date', label: 'Data', type: 'date', required: true, value: today },
-                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0',
+                    { name: 'amount', label: 'Importo (€)', type: 'number', required: true, min: '0.01',
                     value: '0' },
                     { name: 'method', label: 'Metodo di pagamento', type: 'select', required: true,
                         options: ['Bonifico', 'Contanti', 'Assegno', 'Carta', 'Altro'], value: 'Bonifico' },
-                ], (data) => {
-                    const site = sites.find(s => s.id === siteId);
-                    if (!site) return;
+                ];
+                const openExtras = (site.extraWork || []).filter(extra => {
+                    const remaining = (parseFloat(extra.amount) || 0) - (parseFloat(extra.collected) || 0);
+                    return remaining > 0;
+                });
+                if (openExtras.length > 0) {
+                    fields.push({
+                        name: 'extraWorkId',
+                        label: 'Collega a un lavoro extra (opzionale)',
+                        type: 'select',
+                        required: false,
+                        value: '',
+                        options: [
+                            { value: '', label: 'Incasso generico' },
+                            ...openExtras.map(extra => ({
+                                value: extra.id,
+                                label: `${extra.description} · residuo ${fmtEuro((parseFloat(extra.amount) || 0) - (parseFloat(extra.collected) || 0))}`,
+                            })),
+                        ],
+                    });
+                }
+                openModal('Nuovo Incasso', fields, (data) => {
+                    const extra = openExtras.find(item => item.id === data.extraWorkId);
+                    const amount = parseFloat(data.amount) || 0;
+                    if (extra) {
+                        const remaining = Math.max(0,
+                            (parseFloat(extra.amount) || 0) - (parseFloat(extra.collected) || 0));
+                        if (amount > remaining) return;
+                        extra.collected = (parseFloat(extra.collected) || 0) + amount;
+                    }
                     site.collections.push({
                         id: generateId(),
                         date: data.date,
-                        amount: parseFloat(data.amount) || 0,
+                        amount,
                         method: data.method,
+                        ...(extra ? {
+                            extraWorkId: extra.id,
+                            description: `Incasso extra: ${extra.description}`,
+                        } : {}),
                     });
-                    saveData('Incasso aggiunto', data.amount);
+                    saveData(extra ? `Incasso extra registrato: ${extra.description}` : 'Incasso aggiunto', amount);
                     renderSiteDetail(siteId);
                     showToast('✅ Incasso registrato');
                 });
+                if (openExtras.length > 0) attachExtraCollectionLimit(site);
             }
 
             function openDocumentModal(siteId) {
