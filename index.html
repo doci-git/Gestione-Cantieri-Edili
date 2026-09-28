@@ -833,7 +833,10 @@
         display: grid;
         grid-template-rows: auto 1fr;
         gap: 12px;
-        padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+        padding: max(14px, env(safe-area-inset-top))
+          max(14px, env(safe-area-inset-right))
+          max(14px, env(safe-area-inset-bottom))
+          max(14px, env(safe-area-inset-left));
         background: rgba(15, 23, 42, 0.94);
       }
       .photo-lightbox[hidden] {
@@ -1431,9 +1434,23 @@
       </div>
     </div>
 
-    <div class="photo-lightbox" id="photoLightbox" role="dialog" aria-modal="true" aria-label="Foto della spesa" hidden>
-      <button class="photo-lightbox-close" id="photoLightboxClose" type="button" aria-label="Chiudi foto">×</button>
-      <img id="photoLightboxImage" alt="Foto ingrandita della spesa">
+    <div
+      class="photo-lightbox"
+      id="photoLightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Foto della spesa"
+      hidden
+    >
+      <button
+        class="photo-lightbox-close"
+        id="photoLightboxClose"
+        type="button"
+        aria-label="Chiudi foto"
+      >
+        ×
+      </button>
+      <img id="photoLightboxImage" alt="Foto ingrandita della spesa" />
     </div>
 
     <!-- ═══════════════ TOAST ═══════════════ -->
@@ -2584,8 +2601,14 @@
 
         function openExpensePhoto(siteId, itemId) {
           const site = sites.find((entry) => entry.id === siteId);
-          const expense = site && (site.expenses || []).find((item) => item.id === itemId);
-          if (!expense || !expense.photo || !expense.photo.startsWith("data:image/")) return;
+          const expense =
+            site && (site.expenses || []).find((item) => item.id === itemId);
+          if (
+            !expense ||
+            !expense.photo ||
+            !expense.photo.startsWith("data:image/")
+          )
+            return;
           photoLightboxImage.src = expense.photo;
           photoLightboxImage.alt = `Foto della spesa: ${expense.description || "spesa"}`;
           photoLightbox.hidden = false;
@@ -3534,19 +3557,30 @@
             const image = new Image();
             image.src = sourceUrl;
             await image.decode();
-            let scale = Math.min(1, 1280 / Math.max(image.naturalWidth, image.naturalHeight));
+            let scale = Math.min(
+              1,
+              1280 / Math.max(image.naturalWidth, image.naturalHeight),
+            );
             let quality = 0.76;
             let blob = null;
 
             for (let attempt = 0; attempt < 10; attempt++) {
               const canvas = document.createElement("canvas");
-              canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-              canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+              canvas.width = Math.max(
+                1,
+                Math.round(image.naturalWidth * scale),
+              );
+              canvas.height = Math.max(
+                1,
+                Math.round(image.naturalHeight * scale),
+              );
               const context = canvas.getContext("2d");
               context.fillStyle = "#ffffff";
               context.fillRect(0, 0, canvas.width, canvas.height);
               context.drawImage(image, 0, 0, canvas.width, canvas.height);
-              blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+              blob = await new Promise((resolve) =>
+                canvas.toBlob(resolve, "image/jpeg", quality),
+              );
               if (blob && blob.size <= MAX_EXPENSE_PHOTO_SIZE) break;
               if (quality > 0.5) quality -= 0.08;
               else {
@@ -3556,17 +3590,25 @@
             }
 
             if (!blob || blob.size > MAX_EXPENSE_PHOTO_SIZE) {
-              throw new Error("Non riesco a comprimere la foto abbastanza; prova un’immagine più piccola");
+              throw new Error(
+                "Non riesco a comprimere la foto abbastanza; prova un’immagine più piccola",
+              );
             }
             const photoData = await new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = () => resolve(reader.result);
-              reader.onerror = () => reject(new Error("Lettura foto non riuscita"));
+              reader.onerror = () =>
+                reject(new Error("Lettura foto non riuscita"));
               reader.readAsDataURL(blob);
             });
-            const storedSize = getExpensePhotoStorageSize() - replacingPhoto.length + photoData.length;
+            const storedSize =
+              getExpensePhotoStorageSize() -
+              replacingPhoto.length +
+              photoData.length;
             if (storedSize > MAX_EXPENSE_PHOTO_ARCHIVE_SIZE) {
-              throw new Error("Archivio foto pieno: rimuovi una foto o esporta e archivia un backup");
+              throw new Error(
+                "Archivio foto pieno: rimuovi una foto o esporta e archivia un backup",
+              );
             }
             return photoData;
           } finally {
@@ -3586,14 +3628,20 @@
           input.type = "file";
           input.accept = "image/*";
           input.capture = "environment";
-          input.setAttribute("aria-label", "Scegli o scatta una foto della spesa");
+          input.setAttribute(
+            "aria-label",
+            "Scegli o scatta una foto della spesa",
+          );
           const preview = document.createElement("div");
           preview.className = "expense-photo-preview";
           const removeLabel = document.createElement("label");
           const removeCheckbox = document.createElement("input");
           removeCheckbox.type = "checkbox";
           removeCheckbox.setAttribute("aria-label", "Rimuovi la foto allegata");
-          removeLabel.append(removeCheckbox, document.createTextNode(" Rimuovi foto allegata"));
+          removeLabel.append(
+            removeCheckbox,
+            document.createTextNode(" Rimuovi foto allegata"),
+          );
           removeLabel.style.display = existingPhoto ? "block" : "none";
 
           const showPhoto = (photo, description) => {
@@ -3610,7 +3658,10 @@
             preview.append(image, text);
             preview.hidden = false;
           };
-          showPhoto(existingPhoto, existingPhoto ? "Foto attualmente allegata" : "");
+          showPhoto(
+            existingPhoto,
+            existingPhoto ? "Foto attualmente allegata" : "",
+          );
           input.addEventListener("change", async () => {
             const file = input.files && input.files[0];
             if (!file) return;
@@ -3620,11 +3671,17 @@
               selectedPhoto = await compressExpensePhoto(file, existingPhoto);
               removeCheckbox.checked = false;
               removeLabel.style.display = existingPhoto ? "block" : "none";
-              showPhoto(selectedPhoto, "Nuova foto compressa e pronta al salvataggio");
+              showPhoto(
+                selectedPhoto,
+                "Nuova foto compressa e pronta al salvataggio",
+              );
             } catch (error) {
               selectedPhoto = "";
               input.value = "";
-              showPhoto(existingPhoto, existingPhoto ? "Foto attualmente allegata" : "");
+              showPhoto(
+                existingPhoto,
+                existingPhoto ? "Foto attualmente allegata" : "",
+              );
               showToast(`⚠️ ${error.message}`);
             } finally {
               processing = false;
@@ -3642,7 +3699,9 @@
             getPhoto() {
               return {
                 changed: Boolean(selectedPhoto) || removeCheckbox.checked,
-                value: removeCheckbox.checked ? "" : selectedPhoto || currentPhoto,
+                value: removeCheckbox.checked
+                  ? ""
+                  : selectedPhoto || currentPhoto,
               };
             },
             isProcessing: () => processing,
@@ -4004,7 +4063,8 @@
                 amount: parseFloat(data.amount) || 0,
               });
               const photo = expensePhotoPicker.getPhoto();
-              if (photo.value) site.expenses[site.expenses.length - 1].photo = photo.value;
+              if (photo.value)
+                site.expenses[site.expenses.length - 1].photo = photo.value;
               saveData(
                 `Spesa aggiunta (${data.category}): ${data.description}`,
                 data.amount,
