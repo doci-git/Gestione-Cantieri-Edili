@@ -826,6 +826,51 @@
         color: var(--text-secondary);
         font-size: 0.8rem;
       }
+      .expense-ocr-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .expense-ocr-status {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+      }
+      .expense-ocr-candidates {
+        display: grid;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .expense-ocr-candidate {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-alt);
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+      }
+      .expense-ocr-candidate:hover {
+        border-color: var(--accent);
+        background: var(--accent-subtle);
+      }
+      .expense-ocr-candidate strong {
+        flex: 0 0 auto;
+        font-family: var(--font-mono);
+      }
+      .expense-ocr-candidate span {
+        overflow: hidden;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .photo-lightbox {
         position: fixed;
         inset: 0;
@@ -1489,6 +1534,7 @@
         let cloudSyncedSites = [];
         let cloudSyncedActivityLog = [];
         let modalReturnFocus = null;
+        let expenseOcrLibraryPromise = null;
 
         const passwordForm = document.getElementById("passwordForm");
         const accessPassword = document.getElementById("accessPassword");
@@ -3574,6 +3620,64 @@
           }
         }
 
+        function loadExpenseOcrLibrary() {
+          if (window.Tesseract) return Promise.resolve(window.Tesseract);
+          if (expenseOcrLibraryPromise) return expenseOcrLibraryPromise;
+          expenseOcrLibraryPromise = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+            script.async = true;
+            script.onload = () => {
+              if (window.Tesseract) resolve(window.Tesseract);
+              else reject(new Error("Libreria OCR non disponibile"));
+            };
+            script.onerror = () => reject(new Error("Impossibile caricare il lettore OCR: controlla la connessione"));
+            document.head.appendChild(script);
+          }).catch(error => {
+            expenseOcrLibraryPromise = null;
+            throw error;
+          });
+          return expenseOcrLibraryPromise;
+        }
+
+        function extractExpenseAmountCandidates(text) {
+          const candidates = new Map();
+          const amountPattern = /(?:€\s*)?(\d{1,3}(?:[.\s]\d{3})+[,.]\d{2}|\d+[,.]\d{2})(?!\d)/g;
+          const lines = text.split(/\r?\n/);
+
+          lines.forEach((line, lineIndex) => {
+            const normalizedLine = line.toLocaleLowerCase("it");
+            let priority = 0;
+            if (/totale|da pagare|importo|pagare|complessivo|amount due/.test(normalizedLine)) priority += 5;
+            if (/subtotale|imponibile|iva|resto|contanti|carta|bancomat/.test(normalizedLine)) priority += 2;
+
+            for (const match of line.matchAll(amountPattern)) {
+              const rawAmount = match[1].replace(/\s/g, "");
+              let normalizedAmount;
+              if (rawAmount.includes(",")) {
+                normalizedAmount = rawAmount.replace(/\./g, "").replace(",", ".");
+              } else {
+                normalizedAmount = rawAmount;
+              }
+              const amount = Number(normalizedAmount);
+              if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000) continue;
+              const key = amount.toFixed(2);
+              const candidate = {
+                amount,
+                text: line.trim().slice(0, 90) || `Riga ${lineIndex + 1}`,
+                score: priority * 100 + lineIndex,
+              };
+              if (!candidates.has(key) || candidates.get(key).score < candidate.score) {
+                candidates.set(key, candidate);
+              }
+            }
+          });
+
+          return [...candidates.values()]
+            .sort((left, right) => right.score - left.score)
+            .slice(0, 6);
+        }
+
         function appendExpensePhotoPicker(existingPhoto = "") {
           let currentPhoto = existingPhoto;
           let selectedPhoto = "";
@@ -3587,6 +3691,19 @@
           input.accept = "image/*";
           input.capture = "environment";
           input.setAttribute("aria-label", "Scegli o scatta una foto della spesa");
+          const ocrActions = document.createElement("div");
+          ocrActions.className = "expense-ocr-actions";
+          const ocrButton = document.createElement("button");
+          ocrButton.type = "button";
+          ocrButton.className = "btn-sm btn-outline";
+          ocrButton.textContent = "Leggi importo";
+          ocrButton.hidden = !existingPhoto;
+          const ocrStatus = document.createElement("span");
+          ocrStatus.className = "expense-ocr-status";
+          ocrStatus.setAttribute("role", "status");
+          ocrActions.append(ocrButton, ocrStatus);
+          const candidateList = document.createElement("div");
+          candidateList.className = "expense-ocr-candidates";
           const preview = document.createElement("div");
           preview.className = "expense-photo-preview";
           const removeLabel = document.createElement("label");
@@ -3620,6 +3737,9 @@
               selectedPhoto = await compressExpensePhoto(file, existingPhoto);
               removeCheckbox.checked = false;
               removeLabel.style.display = existingPhoto ? "block" : "none";
+              ocrButton.hidden = false;
+              ocrStatus.textContent = "";
+              candidateList.replaceChildren();
               showPhoto(selectedPhoto, "Nuova foto compressa e pronta al salvataggio");
             } catch (error) {
               selectedPhoto = "";
@@ -3631,11 +3751,66 @@
               modalSave.disabled = false;
             }
           });
+          ocrButton.addEventListener("click", async () => {
+            const photo = selectedPhoto || existingPhoto;
+            if (!photo) {
+              ocrStatus.textContent = "Prima scegli o scatta una foto.";
+              return;
+            }
+
+            processing = true;
+            ocrButton.disabled = true;
+            modalSave.disabled = true;
+            candidateList.replaceChildren();
+            ocrStatus.textContent = "Carico il lettore OCR...";
+            try {
+              const tesseract = await loadExpenseOcrLibrary();
+              ocrStatus.textContent = "Leggo la foto: potrebbe richiedere qualche istante...";
+              const result = await tesseract.recognize(photo, "ita", {
+                logger: message => {
+                  if (message.status === "recognizing text" && Number.isFinite(message.progress)) {
+                    ocrStatus.textContent = `Lettura OCR ${Math.round(message.progress * 100)}%...`;
+                  }
+                },
+              });
+              const candidates = extractExpenseAmountCandidates(result.data.text || "");
+              if (candidates.length === 0) {
+                ocrStatus.textContent = "Non ho trovato importi leggibili: inserisci la somma manualmente.";
+              } else {
+                ocrStatus.textContent = "Seleziona l'importo corretto; verrà precompilato ma potrai modificarlo.";
+                candidates.forEach(candidate => {
+                  const button = document.createElement("button");
+                  button.type = "button";
+                  button.className = "expense-ocr-candidate";
+                  const amount = document.createElement("strong");
+                  amount.textContent = fmtEuro(candidate.amount);
+                  const source = document.createElement("span");
+                  source.textContent = candidate.text;
+                  button.append(amount, source);
+                  button.addEventListener("click", () => {
+                    const amountInput = modalBody.querySelector('[data-field-name="amount"]');
+                    amountInput.value = candidate.amount.toFixed(2);
+                    amountInput.dispatchEvent(new Event("input", { bubbles: true }));
+                    amountInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    ocrStatus.textContent = `Importo ${fmtEuro(candidate.amount)} precompilato. Controllalo e premi Salva per registrare la spesa.`;
+                  });
+                  candidateList.appendChild(button);
+                });
+              }
+            } catch (error) {
+              console.error("Errore lettura OCR della spesa:", error);
+              ocrStatus.textContent = error.message || "Lettura OCR non riuscita; puoi inserire l'importo manualmente.";
+            } finally {
+              processing = false;
+              ocrButton.disabled = false;
+              modalSave.disabled = false;
+            }
+          });
           removeCheckbox.addEventListener("change", () => {
             if (removeCheckbox.checked) showPhoto("", "");
             else showPhoto(selectedPhoto || existingPhoto, "Foto allegata");
           });
-          group.append(label, input, preview, removeLabel);
+          group.append(label, input, ocrActions, candidateList, preview, removeLabel);
           modalBody.appendChild(group);
 
           return {
