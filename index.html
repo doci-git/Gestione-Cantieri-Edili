@@ -2918,7 +2918,17 @@
                 `;
 
           const query = (searchInput.value || "").toLowerCase().trim();
-          let filtered = sites;
+          let filtered = sites.slice().sort((left, right) => {
+            const leftCreatedAt = Date.parse(left.createdAt || "");
+            const rightCreatedAt = Date.parse(right.createdAt || "");
+            const leftHasTimestamp = Number.isFinite(leftCreatedAt);
+            const rightHasTimestamp = Number.isFinite(rightCreatedAt);
+            if (leftHasTimestamp !== rightHasTimestamp) {
+              return leftHasTimestamp ? -1 : 1;
+            }
+            if (!leftHasTimestamp) return 0;
+            return rightCreatedAt - leftCreatedAt;
+          });
           if (query) {
             filtered = sites.filter(
               (s) =>
@@ -3400,6 +3410,7 @@
             (data) => {
               const newSite = {
                 id: generateId(),
+                createdAt: new Date().toISOString(),
                 name: data.name,
                 client: data.client,
                 quoteAmount: parseFloat(data.quoteAmount) || 0,
