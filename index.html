@@ -1467,7 +1467,7 @@
         const WORKER_HOURLY_RATE = 35;
         const MAX_EXPENSE_PHOTO_FILE_SIZE = 12 * 1024 * 1024;
         const MAX_EXPENSE_PHOTO_SIZE = 100 * 1024;
-        const MAX_EXPENSE_PHOTO_ARCHIVE_SIZE = 480 * 1024;
+        const MAX_ATTACHMENT_ARCHIVE_SIZE = 480 * 1024;
         const EXPENSE_CATEGORIES = [
           "Non categorizzata",
           "Materiali",
@@ -3114,7 +3114,10 @@
                     <div class="detail-section" data-detail-tab="documents">
                         <div class="detail-section-header">
                             <h3><span class="section-icon icon-doc">📄</span> Documenti</h3>
-                            <button class="btn-sm btn-accent" data-action="add-document">+ Aggiungi</button>
+                          <div style="display:flex;gap:8px;">
+                            <button class="btn-sm btn-accent" data-action="add-document">+ Documento</button>
+                            <button class="btn-sm btn-outline" data-action="add-document-note">+ Nota</button>
+                          </div>
                         </div>
                         ${renderDocumentList(site.documents, siteId)}
                     </div>
@@ -3230,8 +3233,9 @@
               (d) => `
                     <li>
                         <div class="item-info">
-                            <div class="item-desc">📎 ${escapeHtml(d.name)}</div>
-                            <div class="item-meta">${fmtDate(d.date)} · <span class="doc-type-badge">${escapeHtml(d.type)}</span>${d.url ? ' · 🔗 <a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener" style="color:var(--info);">Link</a>' : ""}</div>
+                            <div class="item-desc">${d.type === "Nota" ? "📝" : "📎"} ${escapeHtml(d.name)}</div>
+                            <div class="item-meta">${fmtDate(d.date)} · <span class="doc-type-badge">${escapeHtml(d.type)}</span>${d.url ? ' · 🔗 <a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener" style="color:var(--info);">Link</a>' : ""}${d.pdfData && d.pdfData.startsWith("data:application/pdf;base64,") ? ` · <a href="${escapeHtml(d.pdfData)}" download="${escapeHtml(d.pdfFileName || `${d.name}.pdf`)}" style="color:var(--info);">Scarica PDF</a>` : ""}</div>
+                            ${d.notes ? `<div class="item-meta" style="white-space:pre-wrap;margin-top:6px;">${escapeHtml(d.notes)}</div>` : ""}
                         </div>
                         <button class="btn-sm btn-outline" data-action="edit-item" data-item-id="${d.id}" data-section="document" title="Modifica documento" aria-label="Modifica documento">✏️</button>
                         <button class="btn-danger-sm" data-item-id="${d.id}" data-section="document" title="Elimina">🗑️</button>
@@ -3290,6 +3294,9 @@
               break;
             case "add-document":
               openDocumentModal(siteId);
+              break;
+            case "add-document-note":
+              openDocumentNoteModal(siteId);
               break;
             case "add-reminder":
               openReminderModal(siteId);
@@ -3542,13 +3549,18 @@
           );
         }
 
-        function getExpensePhotoStorageSize() {
+        function getAttachmentStorageSize() {
           return sites.reduce(
             (total, site) =>
               total +
               (site.expenses || []).reduce(
                 (siteTotal, expense) =>
                   siteTotal + (expense.photo ? expense.photo.length : 0),
+                0,
+              ) +
+              (site.documents || []).reduce(
+                (siteTotal, document) =>
+                  siteTotal + (document.pdfData ? document.pdfData.length : 0),
                 0,
               ),
             0,
@@ -3613,12 +3625,12 @@
               reader.readAsDataURL(blob);
             });
             const storedSize =
-              getExpensePhotoStorageSize() -
+              getAttachmentStorageSize() -
               replacingPhoto.length +
               photoData.length;
-            if (storedSize > MAX_EXPENSE_PHOTO_ARCHIVE_SIZE) {
+            if (storedSize > MAX_ATTACHMENT_ARCHIVE_SIZE) {
               throw new Error(
-                "Archivio foto pieno: rimuovi una foto o esporta e archivia un backup",
+                "Archivio allegati pieno: rimuovi un allegato o esporta un backup",
               );
             }
             return photoData;
@@ -3880,43 +3892,63 @@
               });
             }
           } else if (section === "document") {
-            title = "Modifica documento";
+            const isNote = item.type === "Nota";
+            title = isNote ? "Modifica nota" : "Modifica documento";
             fields = [
               {
                 name: "name",
-                label: "Nome documento",
+                label: isNote ? "Titolo nota" : "Nome documento",
                 type: "text",
                 required: true,
                 value: item.name || "",
               },
-              {
-                name: "type",
-                label: "Tipo",
-                type: "select",
-                required: true,
-                options: [
-                  "Preventivo",
-                  "Fattura",
-                  "Contratto",
-                  "Foto",
-                  "Altro",
-                ],
-                value: item.type || "Altro",
-              },
-              {
-                name: "date",
-                label: "Data",
-                type: "date",
-                required: false,
-                value: item.date || "",
-              },
-              {
-                name: "url",
-                label: "Link / URL (opzionale)",
-                type: "text",
-                required: false,
-                value: item.url || "",
-              },
+              ...(isNote
+                ? [
+                    {
+                      name: "notes",
+                      label: "Nota",
+                      type: "textarea",
+                      required: true,
+                      value: item.notes || "",
+                    },
+                    {
+                      name: "date",
+                      label: "Data",
+                      type: "date",
+                      required: false,
+                      value: item.date || "",
+                    },
+                  ]
+                : [
+                    {
+                      name: "type",
+                      label: "Tipo",
+                      type: "select",
+                      required: true,
+                      options: [
+                        "Preventivo",
+                        "Fattura",
+                        "Contratto",
+                        "Foto",
+                        "Altro",
+                      ],
+                      value: item.type || "Altro",
+                    },
+                    {
+                      name: "date",
+                      label: "Data",
+                      type: "date",
+                      required: false,
+                      value: item.date || "",
+                    },
+                    {
+                      name: "url",
+                      label: "Link / URL (opzionale)",
+                      type: "text",
+                      required: false,
+                      value: item.url || "",
+                    },
+                  ]),
             ];
           } else if (section === "reminder") {
             title = "Modifica promemoria";
@@ -4000,12 +4032,20 @@
               item.amount = amount;
               item.method = data.method;
             } else if (section === "document") {
-              Object.assign(item, {
-                name: data.name,
-                type: data.type,
-                date: data.date,
-                url: data.url,
-              });
+              if (item.type === "Nota") {
+                Object.assign(item, {
+                  name: data.name,
+                  notes: data.notes,
+                  date: data.date,
+                });
+              } else {
+                Object.assign(item, {
+                  name: data.name,
+                  type: data.type,
+                  date: data.date,
+                  url: data.url,
+                });
+              }
             } else if (section === "reminder") {
               Object.assign(item, { text: data.text, date: data.date });
             }
@@ -4374,6 +4414,50 @@
               saveData(`Documento aggiunto: ${data.name}`);
               renderSiteDetail(siteId);
               showToast("✅ Documento aggiunto");
+            },
+          );
+        }
+
+        function openDocumentNoteModal(siteId) {
+          const today = new Date().toISOString().split("T")[0];
+          openModal(
+            "Nuova Nota",
+            [
+              {
+                name: "name",
+                label: "Titolo nota",
+                type: "text",
+                required: true,
+                placeholder: "es. Accordi con il cliente",
+              },
+              {
+                name: "notes",
+                label: "Nota",
+                type: "textarea",
+                required: true,
+                placeholder: "Scrivi qui la nota...",
+              },
+              {
+                name: "date",
+                label: "Data",
+                type: "date",
+                required: false,
+                value: today,
+              },
+            ],
+            (data) => {
+              const site = sites.find((s) => s.id === siteId);
+              if (!site) return;
+              site.documents.push({
+                id: generateId(),
+                name: data.name,
+                type: "Nota",
+                date: data.date || today,
+                notes: data.notes,
+              });
+              saveData(`Nota aggiunta: ${data.name}`);
+              renderSiteDetail(siteId);
+              showToast("✅ Nota aggiunta");
             },
           );
         }
