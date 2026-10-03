@@ -2304,6 +2304,9 @@
                 (parseFloat(item.collected) || 0),
             ),
           }));
+          const siteNotes = (site.documents || []).filter(
+            (item) => item.type === "Nota",
+          );
 
           reportWindow.document.open();
           reportWindow.document.write(`<!DOCTYPE html>
@@ -2335,6 +2338,7 @@
                             th:last-child { text-align: right; }
                             th.amount { text-align: right; }
                             .expense-photo { width: 58px; height: 44px; object-fit: cover; border-radius: 3px; }
+                            .note-content { white-space: pre-wrap; overflow-wrap: anywhere; }
                             .empty { color: #7b8790; font-style: italic; }
                             .total { font-weight: 700; text-align: right; }
                             .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 40px; break-inside: avoid; }
@@ -2417,6 +2421,16 @@
                             )}
                                 <tr><td colspan="3" class="total">Totale manodopera</td><td class="amount"><strong>${fmtEuro(laborTotal)}</strong></td></tr>
                             </tbody>
+                        </table>
+                        <h2>Note</h2>
+                        <table><thead><tr><th>Titolo</th><th>Nota</th><th>Data</th></tr></thead>
+                            <tbody>${tableRows(
+                              siteNotes,
+                              (item) => `
+                                <tr><td>${escapeHtml(item.name || "Nota")}</td><td class="note-content">${escapeHtml(item.notes || "")}</td><td>${item.date ? escapeHtml(fmtDate(item.date)) : "—"}</td></tr>
+                              `,
+                              3,
+                            )}</tbody>
                         </table>
                         <div class="signatures">
                             <div class="signature"><span>Firma impresa</span></div>
