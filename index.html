@@ -1535,6 +1535,38 @@
           unlockApp();
         }
 
+        function reconcileExtraWorkCollected(site, baseSite = site) {
+          const linkedTotals = (collections) => {
+            const totals = new Map();
+            (collections || []).forEach((collection) => {
+              if (!collection.extraWorkId) return;
+              totals.set(
+                collection.extraWorkId,
+                (totals.get(collection.extraWorkId) || 0) +
+                  (parseFloat(collection.amount) || 0),
+              );
+            });
+            return totals;
+          };
+          const baseLinkedTotals = linkedTotals(baseSite.collections);
+          const mergedLinkedTotals = linkedTotals(site.collections);
+
+          (site.extraWork || []).forEach((extra) => {
+            const baseExtra = (baseSite.extraWork || []).find(
+              (item) => item.id === extra.id,
+            );
+            const historicalCollected = baseExtra
+              ? Math.max(
+                  0,
+                  (parseFloat(baseExtra.collected) || 0) -
+                    (baseLinkedTotals.get(extra.id) || 0),
+                )
+              : 0;
+            extra.collected =
+              historicalCollected + (mergedLinkedTotals.get(extra.id) || 0);
+          });
+        }
+
         function normalizeSites(value) {
           sites = Array.isArray(value) ? value : [];
           sites.forEach((s) => {
@@ -1553,6 +1585,7 @@
             s.quoteNotes = s.quoteNotes || "";
             s.status = s.status || "Preventivo";
             s.completionDate = s.completionDate || "";
+            reconcileExtraWorkCollected(s);
           });
         }
 
@@ -1718,6 +1751,9 @@
               !sameData(baseById.get(localSite.id), localSite)
             )
               merged.push(localSite);
+          });
+          merged.forEach((site) => {
+            reconcileExtraWorkCollected(site, baseById.get(site.id));
           });
           return merged;
         }
@@ -4016,6 +4052,23 @@
               const oldExtra = (site.extraWork || []).find(
                 (extra) => extra.id === item.extraWorkId,
               );
+              const newExtra = (site.extraWork || []).find(
+                (extra) => extra.id === data.extraWorkId,
+              );
+              const amount = parseFloat(data.amount) || 0;
+              if (newExtra) {
+                const previousPayment =
+                  oldExtra && oldExtra.id === newExtra.id
+                    ? parseFloat(item.amount) || 0
+                    : 0;
+                const remaining = Math.max(
+                  0,
+                  (parseFloat(newExtra.amount) || 0) -
+                    (parseFloat(newExtra.collected) || 0) +
+                    previousPayment,
+                );
+                if (amount > remaining) return;
+              }
               if (oldExtra) {
                 oldExtra.collected = Math.max(
                   0,
@@ -4023,17 +4076,7 @@
                     (parseFloat(item.amount) || 0),
                 );
               }
-              const newExtra = (site.extraWork || []).find(
-                (extra) => extra.id === data.extraWorkId,
-              );
-              const amount = parseFloat(data.amount) || 0;
               if (newExtra) {
-                const remaining = Math.max(
-                  0,
-                  (parseFloat(newExtra.amount) || 0) -
-                    (parseFloat(newExtra.collected) || 0),
-                );
-                if (amount > remaining) return;
                 newExtra.collected =
                   (parseFloat(newExtra.collected) || 0) + amount;
                 item.extraWorkId = newExtra.id;
