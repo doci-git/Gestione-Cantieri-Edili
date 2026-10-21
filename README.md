@@ -23,4 +23,4 @@ service cloud.firestore {
 }
 ```
 
-La pagina salva i dati nel documento `gestione-cantieri/dati-condivisi` e aggiorna automaticamente tutti i dispositivi che hanno aperto il link. Le regole `allow read, write: if true` sono adatte solo per una prova: per pubblicare l'app è necessario aggiungere Firebase Authentication e regole basate sull'utente autorizzato.
+La pagina salva cantieri, storico attività e dati del Magazzino nel documento `gestione-cantieri/dati-condivisi` e aggiorna automaticamente tutti i dispositivi che hanno aperto il link. Le copie di backup includono anche categorie e materiali del Magazzino. Le regole `allow read, write: if true` sono adatte solo per una prova: per pubblicare l'app è necessario aggiungere Firebase Authentication e regole basate sull'utente autorizzato.

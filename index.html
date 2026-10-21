@@ -357,6 +357,173 @@
         }
       }
 
+      .warehouse-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .warehouse-toolbar .search-input {
+        max-width: none;
+      }
+      .warehouse-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .warehouse-filter input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+      }
+      .warehouse-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 20px 0 12px;
+      }
+      .warehouse-heading h2 {
+        min-width: 0;
+        color: var(--slate);
+        font-size: 1.15rem;
+        overflow-wrap: anywhere;
+      }
+      .warehouse-back {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--info);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .warehouse-categories {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 500px) {
+        .warehouse-categories {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .warehouse-category,
+      .warehouse-material {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow-sm);
+      }
+      .warehouse-category-open {
+        flex: 1;
+        min-width: 0;
+        padding: 2px 0;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+      .warehouse-category-count {
+        display: block;
+        margin-top: 3px;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      .warehouse-materials {
+        display: grid;
+        gap: 10px;
+      }
+      .warehouse-material {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .warehouse-material-info {
+        flex: 1;
+        min-width: 120px;
+      }
+      .warehouse-material-name {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+      .warehouse-material-quantity {
+        margin-top: 2px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      .warehouse-material-exhausted {
+        display: inline-block;
+        margin-top: 5px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: var(--danger-light);
+        color: #b91c1c;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .warehouse-material-actions {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .warehouse-quantity-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface-alt);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+      .warehouse-quantity-button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .warehouse-empty {
+        padding: 30px 16px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+      @media (max-width: 380px) {
+        .warehouse-toolbar {
+          grid-template-columns: 1fr;
+        }
+        .warehouse-filter {
+          justify-content: center;
+        }
+        .warehouse-material-actions {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+
       .site-card {
         background: var(--surface);
         border-radius: var(--radius-lg);
@@ -1148,6 +1315,12 @@
           width: 40px;
           height: 40px;
         }
+        .app-header #btnWarehouse,
+        .app-header #btnActivity {
+          padding: 7px 8px;
+          gap: 4px;
+          font-size: 0.76rem;
+        }
         .btn-back,
         .btn-header {
           min-width: 44px;
@@ -1162,6 +1335,9 @@
         .dashboard-stats {
           gap: 8px;
           margin-bottom: 16px;
+        }
+        .warehouse-material {
+          padding: 12px;
         }
         .stat-mini-card {
           padding: 12px 8px;
@@ -1294,6 +1470,15 @@
       <div class="logo-icon">🏗️</div>
       <h1 id="headerTitle">Cantieri</h1>
       <span class="header-spacer"></span>
+      <button
+        class="btn-header"
+        id="btnWarehouse"
+        type="button"
+        title="Apri magazzino"
+        aria-label="Apri Magazzino"
+      >
+        📦 Magazzino
+      </button>
       <button class="btn-header" id="btnActivity" title="Storico attività">
         🧾 Storico
       </button>
@@ -1372,6 +1557,45 @@
           </p>
         </div>
       </div>
+
+      <!-- Warehouse View -->
+      <section id="warehouseView" class="hidden" aria-label="Magazzino">
+        <div class="section-title-row">
+          <h2>📦 Materiali disponibili</h2>
+          <button class="btn-sm btn-accent" id="btnAddWarehouseCategory" type="button">
+            + Categoria
+          </button>
+        </div>
+        <div class="warehouse-toolbar">
+          <input
+            type="search"
+            class="search-input"
+            id="warehouseSearch"
+            placeholder="🔍 Cerca materiale..."
+            aria-label="Cerca materiali"
+          />
+          <label class="warehouse-filter">
+            <input type="checkbox" id="warehouseExhaustedFilter" />
+            Solo esauriti
+          </label>
+        </div>
+        <div class="warehouse-heading">
+          <h2 id="warehouseSectionTitle">Categorie</h2>
+          <button class="warehouse-back hidden" id="btnWarehouseBack" type="button">
+            ← Categorie
+          </button>
+          <button
+            class="btn-sm btn-accent hidden"
+            id="btnAddWarehouseMaterial"
+            type="button"
+          >
+            + Materiale
+          </button>
+        </div>
+        <div class="warehouse-categories" id="warehouseCategories"></div>
+        <div class="warehouse-materials" id="warehouseMaterials"></div>
+        <div class="warehouse-empty hidden" id="warehouseEmpty"></div>
+      </section>
 
       <!-- Site Detail View -->
       <div id="detailView" class="hidden">
@@ -1480,6 +1704,22 @@
         ];
         const ACCESS_SESSION_KEY = "gestione_cantieri_accesso_autorizzato";
         const STORAGE_KEY = "gestione_cantieri_data";
+        const INVENTORY_CATEGORIES_KEY = STORAGE_KEY + "_inventory_categories";
+        const INVENTORY_ITEMS_KEY = STORAGE_KEY + "_inventory_items";
+        const DEFAULT_INVENTORY_CATEGORIES = [
+          "Pittura e vernici",
+          "Idraulica",
+          "Muratura",
+          "Elettricità",
+          "Cartongesso",
+          "Piastrelle",
+          "Ferramenta",
+          "Attrezzature",
+          "Altro",
+        ].map((name, index) => ({
+          id: "category_default_" + index,
+          name,
+        }));
         const FIREBASE_CONFIG = {
           apiKey: "AIzaSyD3qcESGi7Hcc86rf27jJzZlGgzXm96a7Y",
           authDomain: "gestione-cantieri-b7720.firebaseapp.com",
@@ -1495,8 +1735,15 @@
         const CLOUD_DOCUMENT = "gestione-cantieri/dati-condivisi";
         let sites = [];
         let activityLog = [];
+        let inventoryCategories = JSON.parse(
+          JSON.stringify(DEFAULT_INVENTORY_CATEGORIES),
+        );
+        let inventoryItems = [];
         let currentSiteId = null;
         let currentView = "dashboard"; // 'dashboard' | 'detail'
+        let selectedWarehouseCategoryId = null;
+        let warehouseSearchText = "";
+        let warehouseOnlyExhausted = false;
         let currentDetailTab = "accounting";
         let modalCallback = null; // function(formData) => void
         let firestore = null;
@@ -1505,6 +1752,8 @@
         let cloudWritePromise = Promise.resolve();
         let cloudSyncedSites = [];
         let cloudSyncedActivityLog = [];
+        let cloudSyncedInventoryCategories = [];
+        let cloudSyncedInventoryItems = [];
         let modalReturnFocus = null;
 
         const passwordForm = document.getElementById("passwordForm");
@@ -1593,6 +1842,41 @@
           activityLog = Array.isArray(value) ? value.slice(0, 100) : [];
         }
 
+        function normalizeWarehouse(categoriesValue, itemsValue) {
+          inventoryCategories = Array.isArray(categoriesValue)
+            ? categoriesValue
+                .filter(
+                  (category) =>
+                    category &&
+                    typeof category.id === "string" &&
+                    typeof category.name === "string" &&
+                    category.name.trim(),
+                )
+                .map((category) => ({
+                  id: category.id,
+                  name: category.name.trim(),
+                }))
+            : JSON.parse(JSON.stringify(DEFAULT_INVENTORY_CATEGORIES));
+          inventoryItems = Array.isArray(itemsValue)
+            ? itemsValue
+                .filter(
+                  (item) =>
+                    item &&
+                    typeof item.id === "string" &&
+                    typeof item.categoryId === "string" &&
+                    typeof item.name === "string" &&
+                    typeof item.unit === "string",
+                )
+                .map((item) => ({
+                  id: item.id,
+                  categoryId: item.categoryId,
+                  name: item.name.trim(),
+                  quantity: Math.max(0, Number(item.quantity) || 0),
+                  unit: item.unit.trim(),
+                }))
+            : [];
+        }
+
         async function loadData() {
           let shouldSeedDemoData = false;
           let storageAvailable = true;
@@ -1626,6 +1910,22 @@
             console.error("Errore caricamento storico attività:", e);
             activityLog = [];
           }
+          try {
+            const storedCategories = localStorage.getItem(
+              INVENTORY_CATEGORIES_KEY,
+            );
+            const storedItems = localStorage.getItem(INVENTORY_ITEMS_KEY);
+            normalizeWarehouse(
+              storedCategories
+                ? JSON.parse(storedCategories)
+                : DEFAULT_INVENTORY_CATEGORIES,
+              storedItems ? JSON.parse(storedItems) : [],
+            );
+          } catch (e) {
+            console.error("Errore caricamento magazzino:", e);
+            normalizeWarehouse(DEFAULT_INVENTORY_CATEGORIES, []);
+            showToast("⚠️ Archivio magazzino non leggibile");
+          }
           if (!storageAvailable) {
             sites = [];
           }
@@ -1634,6 +1934,12 @@
           }
           cloudSyncedSites = JSON.parse(JSON.stringify(sites));
           cloudSyncedActivityLog = JSON.parse(JSON.stringify(activityLog));
+          cloudSyncedInventoryCategories = JSON.parse(
+            JSON.stringify(inventoryCategories),
+          );
+          cloudSyncedInventoryItems = JSON.parse(
+            JSON.stringify(inventoryItems),
+          );
 
           if (FIREBASE_CONFIGURED && typeof firebase !== "undefined") {
             await connectToCloud();
@@ -1790,17 +2096,54 @@
             .slice(0, 100);
         }
 
-        function saveData(activity, amount = null, siteName = null) {
+        function mergeInventoryItems(
+          baseItems,
+          localItems,
+          remoteItems,
+          quantityMovement = null,
+        ) {
+          const merged = mergeCloudRecords(baseItems, localItems, remoteItems);
+          if (!quantityMovement) return merged;
+          const remoteItem = (remoteItems || []).find(
+            (item) => item.id === quantityMovement.itemId,
+          );
+          return merged.map((item) => {
+            if (item.id === quantityMovement.itemId) {
+              return {
+                ...item,
+                quantity: Math.max(
+                  0,
+                  Number(
+                    (
+                      (remoteItem ? remoteItem.quantity : 0) +
+                      quantityMovement.quantityChange
+                    ).toFixed(2),
+                  ),
+                ),
+              };
+            }
+            return item;
+          });
+        }
+
+        function saveData(
+          activity,
+          amount = null,
+          siteName = null,
+          activityDetails = null,
+        ) {
           const sitesSnapshot = JSON.parse(JSON.stringify(sites));
           if (activity) {
             const currentSite = sites.find((site) => site.id === currentSiteId);
-            activityLog.unshift({
+            const activityEntry = {
               id: generateId(),
               text: activity,
               amount: amount === null ? null : parseFloat(amount) || 0,
               siteName: siteName || (currentSite ? currentSite.name : null),
               timestamp: new Date().toISOString(),
-            });
+            };
+            if (activityDetails) Object.assign(activityEntry, activityDetails);
+            activityLog.unshift(activityEntry);
             activityLog = activityLog.slice(0, 100);
           }
 
@@ -1809,6 +2152,14 @@
             localStorage.setItem(
               STORAGE_KEY + "_activity",
               JSON.stringify(activityLog),
+            );
+            localStorage.setItem(
+              INVENTORY_CATEGORIES_KEY,
+              JSON.stringify(inventoryCategories),
+            );
+            localStorage.setItem(
+              INVENTORY_ITEMS_KEY,
+              JSON.stringify(inventoryItems),
             );
           } catch (e) {
             showToast("⚠️ Spazio di archiviazione esaurito");
@@ -1820,6 +2171,16 @@
               JSON.stringify(cloudSyncedActivityLog),
             );
             const activitySnapshot = JSON.parse(JSON.stringify(activityLog));
+            const categorySnapshot = JSON.parse(
+              JSON.stringify(inventoryCategories),
+            );
+            const itemSnapshot = JSON.parse(JSON.stringify(inventoryItems));
+            const baseCategorySnapshot = JSON.parse(
+              JSON.stringify(cloudSyncedInventoryCategories),
+            );
+            const baseItemSnapshot = JSON.parse(
+              JSON.stringify(cloudSyncedInventoryItems),
+            );
             cloudWritePromise = cloudWritePromise
               .catch(() => {})
               .then(() =>
@@ -1837,12 +2198,32 @@
                     activitySnapshot,
                     remoteData.activityLog,
                   );
+                  const mergedCategories = mergeCloudRecords(
+                    baseCategorySnapshot,
+                    categorySnapshot,
+                    remoteData.inventoryCategories,
+                  );
+                  const inventoryMovement =
+                    activityDetails && activityDetails.inventoryMovement;
+                  const mergedItems = mergeInventoryItems(
+                    baseItemSnapshot,
+                    itemSnapshot,
+                    remoteData.inventoryItems,
+                    inventoryMovement,
+                  );
                   transaction.set(documentRef, {
                     sites: mergedSites,
                     activityLog: mergedActivity,
+                    inventoryCategories: mergedCategories,
+                    inventoryItems: mergedItems,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                   });
-                  return { mergedSites, mergedActivity };
+                  return {
+                    mergedSites,
+                    mergedActivity,
+                    mergedCategories,
+                    mergedItems,
+                  };
                 }),
               )
               .then((result) => {
@@ -1853,6 +2234,16 @@
                 cloudSyncedActivityLog = JSON.parse(
                   JSON.stringify(result.mergedActivity),
                 );
+                normalizeWarehouse(
+                  result.mergedCategories,
+                  result.mergedItems,
+                );
+                cloudSyncedInventoryCategories = JSON.parse(
+                  JSON.stringify(inventoryCategories),
+                );
+                cloudSyncedInventoryItems = JSON.parse(
+                  JSON.stringify(inventoryItems),
+                );
                 localStorage.setItem(
                   STORAGE_KEY,
                   JSON.stringify(result.mergedSites),
@@ -1861,6 +2252,15 @@
                   STORAGE_KEY + "_activity",
                   JSON.stringify(result.mergedActivity),
                 );
+                localStorage.setItem(
+                  INVENTORY_CATEGORIES_KEY,
+                  JSON.stringify(inventoryCategories),
+                );
+                localStorage.setItem(
+                  INVENTORY_ITEMS_KEY,
+                  JSON.stringify(inventoryItems),
+                );
+                if (currentView === "warehouse") renderWarehouse();
               })
               .catch((error) => {
                 console.error("Errore sincronizzazione Firebase:", error);
@@ -1876,6 +2276,8 @@
             exportedAt: new Date().toISOString(),
             sites,
             activityLog,
+            inventoryCategories,
+            inventoryItems,
           };
           const blob = new Blob([JSON.stringify(backup, null, 2)], {
             type: "application/json",
@@ -1917,6 +2319,15 @@
             normalizeActivityLog(
               Array.isArray(backup.activityLog) ? backup.activityLog : [],
             );
+            if (
+              Array.isArray(backup.inventoryCategories) &&
+              Array.isArray(backup.inventoryItems)
+            ) {
+              normalizeWarehouse(
+                backup.inventoryCategories,
+                backup.inventoryItems,
+              );
+            }
             saveData();
             showDashboard();
             showToast("✅ Backup ripristinato");
@@ -1954,19 +2365,48 @@
                 (snapshot) => {
                   if (!snapshot.exists || !Array.isArray(snapshot.data().sites))
                     return;
-                  normalizeSites(snapshot.data().sites);
+                  const remoteData = snapshot.data();
+                  normalizeSites(remoteData.sites);
                   cloudSyncedSites = JSON.parse(JSON.stringify(sites));
-                  normalizeActivityLog(snapshot.data().activityLog);
+                  normalizeActivityLog(remoteData.activityLog);
                   cloudSyncedActivityLog = JSON.parse(
                     JSON.stringify(activityLog),
                   );
+                  normalizeWarehouse(
+                    Array.isArray(remoteData.inventoryCategories)
+                      ? remoteData.inventoryCategories
+                      : inventoryCategories,
+                    Array.isArray(remoteData.inventoryItems)
+                      ? remoteData.inventoryItems
+                      : inventoryItems,
+                  );
+                  cloudSyncedInventoryCategories = Array.isArray(
+                    remoteData.inventoryCategories,
+                  )
+                    ? JSON.parse(JSON.stringify(inventoryCategories))
+                    : [];
+                  cloudSyncedInventoryItems = Array.isArray(
+                    remoteData.inventoryItems,
+                  )
+                    ? JSON.parse(JSON.stringify(inventoryItems))
+                    : [];
                   localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
                   localStorage.setItem(
                     STORAGE_KEY + "_activity",
                     JSON.stringify(activityLog),
                   );
+                  localStorage.setItem(
+                    INVENTORY_CATEGORIES_KEY,
+                    JSON.stringify(inventoryCategories),
+                  );
+                  localStorage.setItem(
+                    INVENTORY_ITEMS_KEY,
+                    JSON.stringify(inventoryItems),
+                  );
                   if (currentView === "detail" && currentSiteId) {
                     renderSiteDetail(currentSiteId);
+                  } else if (currentView === "warehouse") {
+                    renderWarehouse();
                   } else {
                     renderDashboard();
                   }
@@ -1979,22 +2419,86 @@
 
               const document = await firestore.doc(CLOUD_DOCUMENT).get();
               if (document.exists && Array.isArray(document.data().sites)) {
-                normalizeSites(document.data().sites);
+                const remoteData = document.data();
+                normalizeSites(remoteData.sites);
                 cloudSyncedSites = JSON.parse(JSON.stringify(sites));
-                normalizeActivityLog(document.data().activityLog);
+                normalizeActivityLog(remoteData.activityLog);
                 cloudSyncedActivityLog = JSON.parse(
                   JSON.stringify(activityLog),
                 );
+                normalizeWarehouse(
+                  Array.isArray(remoteData.inventoryCategories)
+                    ? remoteData.inventoryCategories
+                    : inventoryCategories,
+                  Array.isArray(remoteData.inventoryItems)
+                    ? remoteData.inventoryItems
+                    : inventoryItems,
+                );
+                cloudSyncedInventoryCategories = Array.isArray(
+                  remoteData.inventoryCategories,
+                )
+                  ? JSON.parse(JSON.stringify(inventoryCategories))
+                  : [];
+                cloudSyncedInventoryItems = Array.isArray(
+                  remoteData.inventoryItems,
+                )
+                  ? JSON.parse(JSON.stringify(inventoryItems))
+                  : [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
                 localStorage.setItem(
                   STORAGE_KEY + "_activity",
                   JSON.stringify(activityLog),
                 );
+                localStorage.setItem(
+                  INVENTORY_CATEGORIES_KEY,
+                  JSON.stringify(inventoryCategories),
+                );
+                localStorage.setItem(
+                  INVENTORY_ITEMS_KEY,
+                  JSON.stringify(inventoryItems),
+                );
+                if (
+                  !Array.isArray(remoteData.inventoryCategories) ||
+                  !Array.isArray(remoteData.inventoryItems)
+                ) {
+                  const documentRef = firestore.doc(CLOUD_DOCUMENT);
+                  const initialCategories = JSON.parse(
+                    JSON.stringify(inventoryCategories),
+                  );
+                  const initialItems = JSON.parse(
+                    JSON.stringify(inventoryItems),
+                  );
+                  await firestore.runTransaction(async (transaction) => {
+                    const latestDocument = await transaction.get(documentRef);
+                    if (!latestDocument.exists) return;
+                    const latestData = latestDocument.data();
+                    transaction.set(
+                      documentRef,
+                      {
+                        inventoryCategories: Array.isArray(
+                          latestData.inventoryCategories,
+                        )
+                          ? latestData.inventoryCategories
+                          : initialCategories,
+                        inventoryItems: Array.isArray(latestData.inventoryItems)
+                          ? latestData.inventoryItems
+                          : initialItems,
+                      },
+                      { merge: true },
+                    );
+                  });
+                }
               } else {
                 const documentRef = firestore.doc(CLOUD_DOCUMENT);
                 const initialSites = JSON.parse(JSON.stringify(sites));
                 const initialActivityLog = JSON.parse(
                   JSON.stringify(activityLog),
+                );
+                const initialCategories = JSON.parse(
+                  JSON.stringify(inventoryCategories),
+                );
+                const initialItems = JSON.parse(
+                  JSON.stringify(inventoryItems),
                 );
                 await firestore.runTransaction(async (transaction) => {
                   const latestDocument = await transaction.get(documentRef);
@@ -2002,6 +2506,8 @@
                     transaction.set(documentRef, {
                       sites: initialSites,
                       activityLog: initialActivityLog,
+                      inventoryCategories: initialCategories,
+                      inventoryItems: initialItems,
                     });
                   }
                 });
@@ -2537,6 +3043,17 @@
         const $$ = (sel) => document.querySelectorAll(sel);
 
         const dashboardView = $("#dashboardView");
+        const warehouseView = $("#warehouseView");
+        const warehouseSearch = $("#warehouseSearch");
+        const warehouseExhaustedFilter = $("#warehouseExhaustedFilter");
+        const warehouseSectionTitle = $("#warehouseSectionTitle");
+        const warehouseCategories = $("#warehouseCategories");
+        const warehouseMaterials = $("#warehouseMaterials");
+        const warehouseEmpty = $("#warehouseEmpty");
+        const btnWarehouse = $("#btnWarehouse");
+        const btnWarehouseBack = $("#btnWarehouseBack");
+        const btnAddWarehouseCategory = $("#btnAddWarehouseCategory");
+        const btnAddWarehouseMaterial = $("#btnAddWarehouseMaterial");
         const detailView = $("#detailView");
         const sitesGrid = $("#sitesGrid");
         const emptyState = $("#emptyState");
@@ -2724,14 +3241,23 @@
               ? '<p style="color:var(--text-muted);text-align:center;padding:20px 0;">Nessuna attività registrata.</p>'
               : `<ul class="item-list">${activityLog
                   .map(
-                    (entry) => `
+                    (entry) => {
+                      const timestamp = new Date(entry.timestamp).toLocaleString(
+                        "it-IT",
+                      );
+                      const meta =
+                        entry.type === "inventory"
+                          ? `Magazzino · ${timestamp}`
+                          : `Cantiere: ${escapeHtml(entry.siteName || "N/D")} · Importo: ${entry.amount === null || entry.amount === undefined ? "N/D" : fmtEuro(entry.amount)} · ${timestamp}`;
+                      return `
                         <li>
                             <div class="item-info">
                                 <div class="item-desc">${escapeHtml(entry.text)}</div>
-                                <div class="item-meta">Cantiere: ${escapeHtml(entry.siteName || "N/D")} · Importo: ${entry.amount === null || entry.amount === undefined ? "N/D" : fmtEuro(entry.amount)} · ${new Date(entry.timestamp).toLocaleString("it-IT")}</div>
+                                <div class="item-meta">${meta}</div>
                             </div>
                         </li>
-                    `,
+                    `;
+                    },
                   )
                   .join("")}</ul>`;
           modalCallback = null;
@@ -2796,12 +3322,14 @@
           currentView = "dashboard";
           currentSiteId = null;
           dashboardView.classList.remove("hidden");
+          warehouseView.classList.add("hidden");
           detailView.classList.add("hidden");
           btnBack.classList.add("hidden");
           btnReportPdf.classList.add("hidden");
           btnEditSite.classList.add("hidden");
           btnDeleteSite.classList.add("hidden");
           btnActivity.classList.remove("hidden");
+          btnWarehouse.classList.remove("hidden");
           headerTitle.textContent = "Cantieri";
           fabAdd.textContent = "+";
           fabAdd.style.display = "flex";
@@ -2813,12 +3341,14 @@
           currentSiteId = siteId;
           currentDetailTab = "accounting";
           dashboardView.classList.add("hidden");
+          warehouseView.classList.add("hidden");
           detailView.classList.remove("hidden");
           btnBack.classList.remove("hidden");
           btnReportPdf.classList.remove("hidden");
           btnEditSite.classList.remove("hidden");
           btnDeleteSite.classList.remove("hidden");
           btnActivity.classList.add("hidden");
+          btnWarehouse.classList.add("hidden");
           const site = sites.find((s) => s.id === siteId);
           if (site) {
             headerTitle.textContent = site.name;
@@ -2828,12 +3358,58 @@
           renderSiteDetail(siteId);
         }
 
+        function showWarehouse() {
+          currentView = "warehouse";
+          currentSiteId = null;
+          selectedWarehouseCategoryId = null;
+          warehouseSearchText = "";
+          warehouseOnlyExhausted = false;
+          warehouseSearch.value = "";
+          warehouseExhaustedFilter.checked = false;
+          dashboardView.classList.add("hidden");
+          warehouseView.classList.remove("hidden");
+          detailView.classList.add("hidden");
+          btnBack.classList.remove("hidden");
+          btnBack.title = "Torna ai cantieri";
+          btnReportPdf.classList.add("hidden");
+          btnEditSite.classList.add("hidden");
+          btnDeleteSite.classList.add("hidden");
+          btnActivity.classList.remove("hidden");
+          btnWarehouse.classList.remove("hidden");
+          headerTitle.textContent = "Magazzino";
+          fabAdd.style.display = "none";
+          renderWarehouse();
+        }
+
         btnBack.addEventListener("click", showDashboard);
         detailTabs.addEventListener("click", (event) => {
           const tab = event.target.closest("[data-detail-tab]");
           if (tab) setDetailTab(tab.getAttribute("data-detail-tab"));
         });
         btnActivity.addEventListener("click", openActivityLog);
+        btnWarehouse.addEventListener("click", showWarehouse);
+        btnWarehouseBack.addEventListener("click", () => {
+          selectedWarehouseCategoryId = null;
+          renderWarehouse();
+        });
+        btnAddWarehouseCategory.addEventListener(
+          "click",
+          openWarehouseCategoryModal,
+        );
+        btnAddWarehouseMaterial.addEventListener(
+          "click",
+          () => openWarehouseMaterialModal(),
+        );
+        warehouseSearch.addEventListener("input", () => {
+          warehouseSearchText = warehouseSearch.value.trim().toLocaleLowerCase(
+            "it",
+          );
+          renderWarehouse();
+        });
+        warehouseExhaustedFilter.addEventListener("change", () => {
+          warehouseOnlyExhausted = warehouseExhaustedFilter.checked;
+          renderWarehouse();
+        });
         btnExportData.addEventListener("click", exportDataBackup);
         btnImportData.addEventListener("click", () => backupFileInput.click());
         backupFileInput.addEventListener("change", async (event) => {
@@ -2871,6 +3447,388 @@
             );
             showToast("🗑️ Cantiere eliminato");
             showDashboard();
+          }
+        });
+
+        function formatWarehouseQuantity(quantity) {
+          return Number(quantity).toLocaleString("it-IT", {
+            maximumFractionDigits: 2,
+          });
+        }
+
+        function openWarehouseCategoryModal() {
+          openModal(
+            "Aggiungi categoria",
+            [
+              {
+                name: "name",
+                label: "Nome categoria",
+                type: "text",
+                required: true,
+                placeholder: "es. Materiale isolante",
+              },
+            ],
+            (data) => {
+              const name = data.name.trim();
+              if (
+                inventoryCategories.some(
+                  (category) =>
+                    category.name.toLocaleLowerCase("it") ===
+                    name.toLocaleLowerCase("it"),
+                )
+              ) {
+                showToast("⚠️ Esiste già una categoria con questo nome");
+                return;
+              }
+              inventoryCategories.push({ id: generateId(), name });
+              saveData();
+              renderWarehouse();
+              showToast("✅ Categoria aggiunta");
+            },
+          );
+        }
+
+        function openWarehouseMaterialModal(itemId = null) {
+          const existing = itemId
+            ? inventoryItems.find((item) => item.id === itemId)
+            : null;
+          if (itemId && !existing) return;
+          if (inventoryCategories.length === 0) {
+            showToast("⚠️ Aggiungi prima una categoria");
+            return;
+          }
+          const fields = [
+            {
+              name: "categoryId",
+              label: "Categoria",
+              type: "select",
+              required: true,
+              options: inventoryCategories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              })),
+              value:
+                (existing && existing.categoryId) ||
+                selectedWarehouseCategoryId ||
+                inventoryCategories[0].id,
+            },
+            {
+              name: "name",
+              label: "Nome materiale",
+              type: "text",
+              required: true,
+              placeholder: "es. Pittura bianca",
+              value: existing ? existing.name : "",
+            },
+            {
+              name: "quantity",
+              label: "Quantità",
+              type: "number",
+              required: true,
+              min: "0",
+              value: existing ? String(existing.quantity) : "0",
+            },
+            {
+              name: "unit",
+              label: "Unità di misura",
+              type: "text",
+              placeholder: "es. pezzi, litri, sacchi",
+              value: existing ? existing.unit : "",
+            },
+          ];
+          openModal(existing ? "Modifica materiale" : "Aggiungi materiale", fields, (data) => {
+            const name = data.name.trim();
+            const unit = data.unit.trim();
+            const quantity = Math.max(0, Number(data.quantity) || 0);
+            if (existing) {
+              const previousQuantity = existing.quantity;
+              existing.categoryId = data.categoryId;
+              existing.name = name;
+              existing.unit = unit;
+              existing.quantity = quantity;
+              const difference = Number(
+                (quantity - previousQuantity).toFixed(2),
+              );
+              if (difference !== 0) {
+                const sign = difference > 0 ? "+" : "−";
+                const unitLabel = unit ? ` ${unit}` : "";
+                saveData(
+                  `${name}: ${sign}${formatWarehouseQuantity(Math.abs(difference))}${unitLabel}`,
+                  null,
+                  "Magazzino",
+                  {
+                    type: "inventory",
+                    inventoryMovement: {
+                      itemId: existing.id,
+                      itemName: name,
+                      quantityChange: difference,
+                      unit,
+                    },
+                  },
+                );
+              } else {
+                saveData();
+              }
+            } else {
+              const item = {
+                id: generateId(),
+                categoryId: data.categoryId,
+                name,
+                quantity,
+                unit,
+              };
+              inventoryItems.push(item);
+              const unitLabel = unit ? ` ${unit}` : "";
+              saveData(
+                `Materiale aggiunto: ${name} — ${formatWarehouseQuantity(quantity)}${unitLabel}`,
+                null,
+                "Magazzino",
+                { type: "inventory" },
+              );
+            }
+            renderWarehouse();
+            showToast(existing ? "✅ Materiale aggiornato" : "✅ Materiale aggiunto");
+          });
+        }
+
+        function deleteWarehouseCategory(categoryId) {
+          const category = inventoryCategories.find(
+            (item) => item.id === categoryId,
+          );
+          if (!category) return;
+          const materialCount = inventoryItems.filter(
+            (item) => item.categoryId === categoryId,
+          ).length;
+          const warning = materialCount
+            ? ` La categoria contiene ${materialCount} material${materialCount === 1 ? "e" : "i"}, che verranno eliminati.`
+            : "";
+          if (!confirm(`Eliminare la categoria "${category.name}"?${warning}`))
+            return;
+          inventoryCategories = inventoryCategories.filter(
+            (item) => item.id !== categoryId,
+          );
+          inventoryItems = inventoryItems.filter(
+            (item) => item.categoryId !== categoryId,
+          );
+          if (selectedWarehouseCategoryId === categoryId) {
+            selectedWarehouseCategoryId = null;
+          }
+          saveData();
+          renderWarehouse();
+          showToast("🗑️ Categoria eliminata");
+        }
+
+        function adjustWarehouseQuantity(itemId, change) {
+          const item = inventoryItems.find((entry) => entry.id === itemId);
+          if (!item) return;
+          const previousQuantity = item.quantity;
+          item.quantity = Math.max(
+            0,
+            Number((previousQuantity + change).toFixed(2)),
+          );
+          const difference = Number(
+            (item.quantity - previousQuantity).toFixed(2),
+          );
+          if (difference === 0) return;
+          const sign = difference > 0 ? "+" : "−";
+          const unitLabel = item.unit ? ` ${item.unit}` : "";
+          saveData(
+            `${item.name}: ${sign}${formatWarehouseQuantity(Math.abs(difference))}${unitLabel}`,
+            null,
+            "Magazzino",
+            {
+              type: "inventory",
+              inventoryMovement: {
+                itemId: item.id,
+                itemName: item.name,
+                quantityChange: difference,
+                unit: item.unit,
+              },
+            },
+          );
+          renderWarehouse();
+        }
+
+        function renderWarehouse() {
+          if (selectedWarehouseCategoryId) {
+            const selectedCategory = inventoryCategories.find(
+              (category) => category.id === selectedWarehouseCategoryId,
+            );
+            if (!selectedCategory) selectedWarehouseCategoryId = null;
+          }
+          const hasGlobalFilter =
+            warehouseSearchText.length > 0 || warehouseOnlyExhausted;
+          const isInCategory =
+            selectedWarehouseCategoryId !== null && !hasGlobalFilter;
+          const selectedCategory = inventoryCategories.find(
+            (category) => category.id === selectedWarehouseCategoryId,
+          );
+          warehouseSectionTitle.textContent = hasGlobalFilter
+            ? warehouseOnlyExhausted && warehouseSearchText
+              ? "Risultati esauriti"
+              : warehouseOnlyExhausted
+                ? "Materiali esauriti"
+                : "Risultati ricerca"
+            : selectedCategory
+              ? selectedCategory.name
+              : "Categorie";
+          btnWarehouseBack.classList.toggle("hidden", !isInCategory);
+          btnAddWarehouseMaterial.classList.toggle(
+            "hidden",
+            !isInCategory,
+          );
+
+          if (!isInCategory && !hasGlobalFilter) {
+            warehouseCategories.classList.remove("hidden");
+            warehouseCategories.innerHTML = inventoryCategories
+              .map((category) => {
+                const count = inventoryItems.filter(
+                  (item) => item.categoryId === category.id,
+                ).length;
+                return `
+                  <article class="warehouse-category">
+                    <button
+                      class="warehouse-category-open"
+                      type="button"
+                      data-warehouse-open-category="${escapeAttribute(category.id)}"
+                    >
+                      ${escapeHtml(category.name)}
+                      <span class="warehouse-category-count">${count} material${count === 1 ? "e" : "i"}</span>
+                    </button>
+                    <button
+                      class="btn-danger-sm"
+                      type="button"
+                      data-warehouse-delete-category="${escapeAttribute(category.id)}"
+                      aria-label="Elimina categoria ${escapeAttribute(category.name)}"
+                      title="Elimina categoria"
+                    >🗑️</button>
+                  </article>
+                `;
+              })
+              .join("");
+            warehouseMaterials.classList.add("hidden");
+            warehouseMaterials.innerHTML = "";
+            warehouseEmpty.classList.toggle(
+              "hidden",
+              inventoryCategories.length > 0,
+            );
+            warehouseEmpty.textContent = "Nessuna categoria presente.";
+            return;
+          }
+
+          warehouseCategories.classList.add("hidden");
+          warehouseCategories.innerHTML = "";
+          warehouseMaterials.classList.remove("hidden");
+          const matchingItems = inventoryItems.filter((item) => {
+            const category = inventoryCategories.find(
+              (entry) => entry.id === item.categoryId,
+            );
+            if (isInCategory && item.categoryId !== selectedWarehouseCategoryId)
+              return false;
+            if (warehouseOnlyExhausted && item.quantity !== 0) return false;
+            if (!warehouseSearchText) return true;
+            return `${item.name} ${category ? category.name : ""}`
+              .toLocaleLowerCase("it")
+              .includes(warehouseSearchText);
+          });
+          warehouseMaterials.innerHTML = matchingItems
+            .map((item) => {
+              const category = inventoryCategories.find(
+                (entry) => entry.id === item.categoryId,
+              );
+              return `
+                <article class="warehouse-material">
+                  <div class="warehouse-material-info">
+                    <div class="warehouse-material-name">${escapeHtml(item.name)}</div>
+                    <div class="warehouse-material-quantity">
+                      ${formatWarehouseQuantity(item.quantity)}${item.unit ? ` ${escapeHtml(item.unit)}` : ""}
+                      ${hasGlobalFilter && category ? ` · ${escapeHtml(category.name)}` : ""}
+                    </div>
+                    ${item.quantity === 0 ? '<span class="warehouse-material-exhausted">Esaurito</span>' : ""}
+                  </div>
+                  <div class="warehouse-material-actions">
+                    <button
+                      class="warehouse-quantity-button"
+                      type="button"
+                      data-warehouse-adjust="-1"
+                      data-warehouse-item="${escapeAttribute(item.id)}"
+                      aria-label="Diminuisci ${escapeAttribute(item.name)}"
+                      title="Diminuisci di 1${item.unit ? ` ${escapeAttribute(item.unit)}` : ""}"
+                      ${item.quantity === 0 ? "disabled" : ""}
+                    >−</button>
+                    <button
+                      class="warehouse-quantity-button"
+                      type="button"
+                      data-warehouse-adjust="1"
+                      data-warehouse-item="${escapeAttribute(item.id)}"
+                      aria-label="Aumenta ${escapeAttribute(item.name)}"
+                      title="Aumenta di 1${item.unit ? ` ${escapeAttribute(item.unit)}` : ""}"
+                    >+</button>
+                    <button
+                      class="btn-sm btn-outline"
+                      type="button"
+                      data-warehouse-edit="${escapeAttribute(item.id)}"
+                      aria-label="Modifica ${escapeAttribute(item.name)}"
+                      title="Modifica materiale"
+                    >✏️</button>
+                    <button
+                      class="btn-danger-sm"
+                      type="button"
+                      data-warehouse-delete-item="${escapeAttribute(item.id)}"
+                      aria-label="Elimina ${escapeAttribute(item.name)}"
+                      title="Elimina materiale"
+                    >🗑️</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+          const hasMatches = matchingItems.length > 0;
+          warehouseEmpty.classList.toggle("hidden", hasMatches);
+          warehouseEmpty.textContent = warehouseOnlyExhausted
+            ? "Nessun materiale esaurito trovato."
+            : warehouseSearchText
+              ? "Nessun materiale trovato."
+              : "Nessun materiale in questa categoria. Aggiungine uno con il pulsante + Materiale.";
+        }
+
+        warehouseView.addEventListener("click", (event) => {
+          const target = event.target.closest("button");
+          if (!target) return;
+          if (target.dataset.warehouseOpenCategory) {
+            selectedWarehouseCategoryId =
+              target.dataset.warehouseOpenCategory;
+            renderWarehouse();
+          } else if (target.dataset.warehouseDeleteCategory) {
+            deleteWarehouseCategory(target.dataset.warehouseDeleteCategory);
+          } else if (target.dataset.warehouseAdjust) {
+            adjustWarehouseQuantity(
+              target.dataset.warehouseItem,
+              Number(target.dataset.warehouseAdjust),
+            );
+          } else if (target.dataset.warehouseEdit) {
+            openWarehouseMaterialModal(target.dataset.warehouseEdit);
+          } else if (target.dataset.warehouseDeleteItem) {
+            const item = inventoryItems.find(
+              (entry) => entry.id === target.dataset.warehouseDeleteItem,
+            );
+            if (
+              item &&
+              confirm(`Eliminare il materiale "${item.name}" dal magazzino?`)
+            ) {
+              inventoryItems = inventoryItems.filter(
+                (entry) => entry.id !== item.id,
+              );
+              const unitLabel = item.unit ? ` ${item.unit}` : "";
+              saveData(
+                `Materiale eliminato: ${item.name} — ${formatWarehouseQuantity(item.quantity)}${unitLabel}`,
+                null,
+                "Magazzino",
+                { type: "inventory" },
+              );
+              renderWarehouse();
+              showToast("🗑️ Materiale eliminato");
+            }
           }
         });
 
@@ -3048,6 +4006,19 @@
           const div = document.createElement("div");
           div.textContent = str;
           return div.innerHTML;
+        }
+
+        function escapeAttribute(value) {
+          return String(value).replace(/[&<>"']/g, (character) => {
+            const entities = {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            };
+            return entities[character];
+          });
         }
 
         // ─────────────────────────────────────
