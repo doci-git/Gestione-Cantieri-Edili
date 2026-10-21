@@ -1,6 +1,6 @@
 # Gestione-Cantieri-Edili
 
-https://doci-git.github.io/Gestione-Cantieri-Edili/
+
 
 ## Struttura del progetto
 
