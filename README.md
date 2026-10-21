@@ -2,6 +2,12 @@
 
 https://doci-git.github.io/Gestione-Cantieri-Edili/
 
+## Struttura del progetto
+
+- `index.html` contiene la struttura della pagina.
+- `styles.css` contiene gli stili dell'app.
+- `app.js` contiene la logica JavaScript.
+
 ## Sincronizzazione tra dispositivi
 
 L'app supporta Firebase Cloud Firestore. Senza configurazione Firebase continua a funzionare con il salvataggio locale del browser.
