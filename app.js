@@ -2424,7 +2424,7 @@
                             <h3><span class="section-icon icon-labor">👷</span> Operai e manodopera</h3>
                             <button class="btn-sm btn-accent" data-action="add-labor">+ Aggiungi</button>
                         </div>
-                        <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:8px;">Costo operaio calcolato a ${fmtEuro(WORKER_HOURLY_RATE)} per ora</p>
+                        <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:8px;">Costo orario personalizzabile per ogni operaio (predefinito: ${fmtEuro(WORKER_HOURLY_RATE)}/ora)</p>
                         ${renderItemList(site.labor, "labor", siteId, "labor")}
                     </div>
 
@@ -3139,16 +3139,23 @@
               },
               {
                 name: "hours",
-                label: workerRate
-                  ? `Ore lavorate (${fmtEuro(workerRate)}/ora)`
-                  : "Ore (opzionale)",
+                label: workerRate ? "Ore lavorate" : "Ore (opzionale)",
                 type: "number",
                 required: workerRate > 0,
                 min: workerRate ? "0.01" : "0",
                 value: String(item.hours || ""),
               },
             ];
-            if (!workerRate) {
+            if (workerRate) {
+              fields.push({
+                name: "hourlyRate",
+                label: "Costo orario (€)",
+                type: "number",
+                required: true,
+                min: "0.01",
+                value: String(workerRate),
+              });
+            } else {
               fields.push({
                 name: "amount",
                 label: "Importo totale (€)",
@@ -3326,8 +3333,8 @@
               item.description = data.description;
               item.hours = parseFloat(data.hours) || 0;
               if (workerRate) {
-                item.hourlyRate = workerRate;
-                item.amount = item.hours * workerRate;
+                item.hourlyRate = parseFloat(data.hourlyRate) || 0;
+                item.amount = item.hours * item.hourlyRate;
               } else {
                 item.amount = data.amount;
               }
@@ -3483,23 +3490,32 @@
               },
               {
                 name: "hours",
-                label: `Ore lavorate (${fmtEuro(WORKER_HOURLY_RATE)}/ora)`,
+                label: "Ore lavorate",
                 type: "number",
                 required: true,
                 min: "0.01",
                 value: "",
+              },
+              {
+                name: "hourlyRate",
+                label: "Costo orario (€)",
+                type: "number",
+                required: true,
+                min: "0.01",
+                value: String(WORKER_HOURLY_RATE),
               },
             ],
             (data) => {
               const site = sites.find((s) => s.id === siteId);
               if (!site) return;
               const hours = parseFloat(data.hours) || 0;
-              const amount = hours * WORKER_HOURLY_RATE;
+              const hourlyRate = parseFloat(data.hourlyRate) || 0;
+              const amount = hours * hourlyRate;
               site.labor.push({
                 id: generateId(),
                 description: data.description,
                 hours,
-                hourlyRate: WORKER_HOURLY_RATE,
+                hourlyRate,
                 amount,
               });
               saveData(
